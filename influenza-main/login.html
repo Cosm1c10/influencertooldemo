@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kreo Hub — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root {
+  --bg:#0a0a0f; --surface:#12121a; --surface2:#1a1a26;
+  --border:#2a2a42; --accent:#7c5cfc; --accent2:#fc5c7d; --accent3:#5cfcb4;
+  --text:#e8e6f0; --text2:#9896b0; --text3:#5a5878;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body {
+  font-family:'Instrument Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  position:relative;
+}
+body::before {
+  content:'';
+  position:fixed;
+  top:-20%;left:-10%;
+  width:60%;height:60%;
+  background:radial-gradient(ellipse, rgba(124,92,252,0.07) 0%, transparent 70%);
+  pointer-events:none;
+}
+body::after {
+  content:'';
+  position:fixed;
+  bottom:-20%;right:-10%;
+  width:50%;height:50%;
+  background:radial-gradient(ellipse, rgba(92,252,180,0.04) 0%, transparent 70%);
+  pointer-events:none;
+}
+.card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:44px 40px;
+  width:100%;
+  max-width:400px;
+  position:relative;
+  z-index:1;
+  box-shadow:0 32px 80px rgba(0,0,0,.5);
+  animation:fadeUp .35s cubic-bezier(.4,0,.2,1) forwards;
+}
+@keyframes fadeUp {
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.card::before {
+  content:'';
+  position:absolute;
+  top:0;left:24px;right:24px;
+  height:1px;
+  background:linear-gradient(90deg, transparent, var(--accent), transparent);
+  border-radius:1px;
+}
+.logo { margin-bottom:36px }
+.logo-text {
+  font-family:'Syne',sans-serif;
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:-.5px;
+}
+.logo-text span { color:var(--accent) }
+.logo-sub {
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-top:4px;
+}
+.heading {
+  font-family:'Syne',sans-serif;
+  font-size:22px;
+  font-weight:800;
+  margin-bottom:6px;
+  letter-spacing:-.4px;
+}
+.subheading {
+  font-size:13px;
+  color:var(--text2);
+  margin-bottom:32px;
+  line-height:1.6;
+}
+
+/* Custom Google button — matches dashboard aesthetic */
+.google-btn {
+  width:100%;
+  padding:13px 16px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:11px;
+  color:var(--text);
+  font-family:'Instrument Sans',sans-serif;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  transition:all .15s;
+  position:relative;
+  overflow:hidden;
+}
+.google-btn:hover:not(:disabled) {
+  border-color:var(--accent);
+  background:rgba(124,92,252,0.08);
+  transform:translateY(-1px);
+  box-shadow:0 6px 20px rgba(124,92,252,.18);
+}
+.google-btn:disabled {
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none;
+}
+.google-btn svg {
+  width:18px;height:18px;
+  flex-shrink:0;
+}
+
+.divider {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:22px 0;
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  color:var(--text3);
+  letter-spacing:1px;
+}
+.divider::before,.divider::after {
+  content:'';flex:1;
+  height:1px;background:var(--border);
+}
+
+.access-note {
+  background:rgba(124,92,252,.07);
+  border:1px solid rgba(124,92,252,.15);
+  border-radius:8px;
+  padding:11px 13px;
+  font-size:12px;
+  color:var(--text2);
+  line-height:1.6;
+  text-align:center;
+}
+.access-note strong { color:var(--accent3) }
+
+.error-msg {
+  background:rgba(252,92,125,.1);
+  border:1px solid rgba(252,92,125,.25);
+  color:var(--accent2);
+  border-radius:8px;
+  padding:11px 14px;
+  font-size:12px;
+  margin-top:16px;
+  display:none;
+  line-height:1.6;
+  text-align:center;
+}
+.error-msg.show { display:block }
+
+.spinner {
+  width:16px;height:16px;
+  border:2px solid rgba(255,255,255,.2);
+  border-top-color:var(--text);
+  border-radius:50%;
+  animation:spin .6s linear infinite;
+  flex-shrink:0;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.footer {
+  margin-top:32px;
+  padding-top:20px;
+  border-top:1px solid var(--border);
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  color:var(--text3);
+  text-align:center;
+  letter-spacing:.5px;
+}
+.footer span { color:var(--accent3) }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-text">Kreo <span>Hub</span></div>
+    <div class="logo-sub">Influencer CRM</div>
+  </div>
+
+  <div class="heading">Sign in</div>
+  <div class="subheading">Use your Kreo Google account to access the dashboard.</div>
+
+  <button class="google-btn" id="google-btn" onclick="startGoogleSignIn()">
+    <!-- Google 'G' logo SVG -->
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+    </svg>
+    Continue with Google
+  </button>
+
+  <div class="error-msg" id="error-msg"></div>
+
+  <div class="divider">internal access only</div>
+
+  <div class="access-note">
+    Only <strong>approved team emails</strong> can sign in.<br>
+    Contact your admin to request access.
+  </div>
+
+  <div class="footer">
+    <span>Kreo</span> · Influencer Hub · Internal tool
+  </div>
+</div>
+
+<script>
+// ── REPLACE THIS with your actual Google OAuth Client ID ──────
+const GOOGLE_CLIENT_ID = '872643242209-a2caps3picuauarkj13iig7c84f7706r.apps.googleusercontent.com';
+// ─────────────────────────────────────────────────────────────
+
+let googleInitReady = false;
+
+// GIS is loaded async — initialise once it's ready
+window.onload = function() {
+  if (typeof google !== 'undefined') initGoogle();
+};
+
+// Fallback if onload fires before GIS script completes
+document.querySelector('script[src*="gsi/client"]').addEventListener('load', () => {
+  initGoogle();
+});
+
+function initGoogle() {
+  if (googleInitReady) return;
+  googleInitReady = true;
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleCredentialResponse,
+    auto_select: false,
+    cancel_on_tap_outside: true,
+  });
+}
+
+function startGoogleSignIn() {
+  if (!googleInitReady) {
+    showError('Google Sign-In is still loading — please wait a moment.');
+    return;
+  }
+  const btn = document.getElementById('google-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Opening Google…';
+  hideError();
+
+  // Trigger the Google One Tap / OAuth popup
+  google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'openid email profile',
+    callback: () => {}, // not used — we use the ID token flow
+  });
+
+  // Use the prompt flow which gives us an ID token
+  google.accounts.id.prompt((notification) => {
+    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+      // One Tap suppressed — fall back to explicit OAuth popup
+      triggerOAuthPopup();
+    }
+  });
+}
+
+function triggerOAuthPopup() {
+  const btn = document.getElementById('google-btn');
+  const client = google.accounts.oauth2.initCodeClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'openid email profile',
+    ux_mode: 'popup',
+    callback: () => {},
+  });
+
+  // Use ID token flow via renderButton approach
+  const tempDiv = document.createElement('div');
+  tempDiv.style.display = 'none';
+  document.body.appendChild(tempDiv);
+
+  google.accounts.id.renderButton(tempDiv, {
+    theme: 'outline',
+    size: 'large',
+    type: 'standard',
+  });
+
+  // Click the hidden button to trigger the native Google flow
+  const hiddenBtn = tempDiv.querySelector('[role="button"]') || tempDiv.firstElementChild;
+  if (hiddenBtn) {
+    hiddenBtn.click();
+  } else {
+    // Ultimate fallback
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Continue with Google`;
+    showError('Popup was blocked. Please allow popups for this site and try again.');
+  }
+
+  setTimeout(() => tempDiv.remove(), 500);
+}
+
+// This fires when Google returns the ID token
+async function handleCredentialResponse(response) {
+  const btn = document.getElementById('google-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Verifying…';
+  hideError();
+
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: response.credential })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      btn.innerHTML = '<div class="spinner"></div> Signing you in…';
+      const params = new URLSearchParams(window.location.search);
+      window.location.href = params.get('next') || '/';
+    } else {
+      showError(data.message || data.error || 'Access denied.');
+      resetBtn();
+    }
+  } catch (e) {
+    showError('Network error — please try again.');
+    resetBtn();
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideError() {
+  document.getElementById('error-msg').classList.remove('show');
+}
+function resetBtn() {
+  const btn = document.getElementById('google-btn');
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Continue with Google`;
+}
+
+// Listen for the credential response from the hidden renderButton approach
+google.accounts && google.accounts.id && google.accounts.id.initialize({
+  client_id: GOOGLE_CLIENT_ID,
+  callback: handleCredentialResponse,
+});
+</script>
+</body>
+</html>

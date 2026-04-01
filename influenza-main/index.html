@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kreo Influencer Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#0a0a0f; --surface:#12121a; --surface2:#1a1a26; --surface3:#22223a;
+  --border:#2a2a42; --accent:#7c5cfc; --accent2:#fc5c7d; --accent3:#5cfcb4;
+  --accent-dim:rgba(124,92,252,0.15); --text:#e8e6f0; --text2:#9896b0; --text3:#5a5878;
+  --yt:#fc5c5c; --ig:#fc5ca8;
+  --nano:#5cfcb4; --micro:#5cb4fc; --macro1:#c45cfc; --macro2:#fc9c5c; --macro3:#fc5c7d; --macro4:#fce45c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+/* SIDEBAR */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.logo{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.logo-text{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.5px}
+.logo-text span{color:var(--accent)}
+.logo-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.nav-section{padding:0 12px;margin-bottom:8px}
+.nav-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;padding:6px 8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--text2);transition:all .15s;margin-bottom:2px;border:1px solid transparent}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(124,92,252,.25)}
+.nav-item .icon{font-size:15px;width:18px;text-align:center}
+.sidebar-bottom{margin-top:auto;padding:16px 20px 0;border-top:1px solid var(--border)}
+.conn-status{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;margin-bottom:10px}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background .3s}
+.conn-dot.connected{background:var(--accent3);box-shadow:0 0 6px rgba(92,252,180,.5);animation:pulse 2s infinite}
+.conn-dot.error{background:var(--accent2)}
+.conn-dot.loading{background:var(--accent);animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* MAIN */
+.main{overflow-y:auto}
+.view{display:none;padding:32px}
+.view.active{display:block}
+/* PAGE HEADERS */
+.page-header{margin-bottom:28px;display:flex;justify-content:space-between;align-items:flex-start}
+.page-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px}
+.page-title span{color:var(--accent)}
+.page-sub{color:var(--text2);font-size:13px;margin-top:4px}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s}
+.stat-card:hover{border-color:var(--accent-color,var(--accent))}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent-color,var(--accent))}
+.stat-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
+.stat-value{font-family:'Syne',sans-serif;font-size:26px;font-weight:700}
+.stat-sub{font-size:11px;color:var(--text2);margin-top:4px}
+/* FILTER BAR */
+.filter-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.filter-bar input,.filter-bar select{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-family:'Instrument Sans',sans-serif;font-size:13px;outline:none;transition:border-color .15s}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--accent)}
+.filter-bar input{width:220px}
+.filter-bar select{cursor:pointer}
+/* PERIOD PICKER */
+.period-bar{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:20px;flex-wrap:wrap}
+.period-block{display:flex;flex-direction:column;gap:6px}
+.period-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
+.period-a-label{color:var(--accent)}
+.period-b-label{color:var(--accent2)}
+.period-inputs{display:flex;align-items:center;gap:6px}
+.period-inputs select{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:6px 10px;font-family:'Instrument Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;transition:border-color .15s;min-width:120px}
+.period-inputs select:focus{border-color:var(--accent)}
+.period-arrow{color:var(--text3);font-size:12px}
+.btn-compare{display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;border:1px dashed var(--border);background:transparent;color:var(--text3);font-family:'Instrument Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-compare:hover,.btn-compare.active{border-color:var(--accent2);color:var(--accent2);background:rgba(252,92,125,.07)}
+.divider{width:1px;height:32px;background:var(--border);margin:0 2px}
+/* COMPARISON DELTA ON STAT CARDS */
+.stat-compare{margin-top:6px;min-height:18px;font-family:'DM Mono',monospace;font-size:11px}
+.delta-up{color:var(--accent3)}
+.delta-down{color:var(--accent2)}
+.delta-flat{color:var(--text3)}
+.period-b-val{color:var(--text3);font-size:10px}
+/* COMPARE PERFORMERS */
+.performers-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:4px}
+.performers-col-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;border:none;font-family:'Instrument Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#6a4ae8;transform:translateY(-1px)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-success{background:rgba(92,252,180,.15);color:var(--accent3);border:1px solid rgba(92,252,180,.3)}
+.btn-success:hover{background:rgba(92,252,180,.25)}
+.btn-sm{padding:6px 10px;font-size:12px}
+.btn-icon{padding:6px 8px;font-size:14px}
+/* TABLE */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--surface2)}
+th{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.2px;color:var(--text3);text-transform:uppercase;padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(26,26,38,.6)}
+.table-empty{text-align:center;padding:48px;color:var(--text3);font-size:13px}
+.row-actions{display:flex;gap:6px;opacity:0;transition:opacity .15s}
+tr:hover .row-actions{opacity:1}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;font-family:'DM Mono',monospace;white-space:nowrap}
+.badge-yt{background:rgba(252,92,92,.15);color:var(--yt)}
+.badge-ig{background:rgba(252,92,168,.15);color:var(--ig)}
+.badge-posted{background:rgba(92,252,180,.15);color:var(--accent3)}
+.badge-inprogress{background:rgba(92,180,252,.15);color:#5cb4fc}
+.badge-notposted{background:rgba(252,92,93,.15);color:var(--accent2)}
+.badge-pending{background:rgba(252,228,92,.15);color:#fce45c}
+.badge-approved{background:rgba(92,252,180,.15);color:var(--accent3)}
+.badge-rejected{background:rgba(252,92,93,.15);color:var(--accent2)}
+.tier-badge{padding:2px 7px;border-radius:4px;font-size:10px;font-family:'DM Mono',monospace;font-weight:500;letter-spacing:.5px}
+/* PROFILE PANEL */
+.profile-panel{position:fixed;right:0;top:0;width:490px;height:100vh;background:var(--surface);border-left:1px solid var(--border);z-index:100;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow-y:auto}
+.profile-panel.open{transform:translateX(0)}
+.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99;display:none;backdrop-filter:blur(2px)}
+.panel-overlay.open{display:block}
+.panel-header{padding:24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;position:sticky;top:0;background:var(--surface);z-index:2}
+.panel-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:700}
+.panel-body{padding:20px 24px;flex:1}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.info-item{background:var(--surface2);border-radius:8px;padding:11px 13px}
+.info-item-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin-bottom:4px}
+.info-item-value{font-size:13px;font-weight:500;word-break:break-all}
+.section-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--text3);text-transform:uppercase;margin:18px 0 10px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.deliverable-list{display:flex;flex-direction:column;gap:8px}
+.deliverable-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.ig-metric-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.ig-metric-card.is-live{border-color:rgba(252,92,168,.35);box-shadow:0 0 0 1px rgba(252,92,168,.15)}
+.ig-metric-row{display:flex;gap:10px;justify-content:space-between}
+.ig-metric-pill{display:flex;flex-direction:column;align-items:center;background:var(--surface3);border-radius:7px;padding:6px 10px;flex:1;min-width:0}
+.ig-metric-pill-val{font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:var(--text)}
+.ig-metric-pill-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
+.del-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.del-metrics{display:flex;gap:14px;flex-wrap:wrap}
+.del-metric{text-align:center}
+.del-metric-val{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.del-metric-lbl{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);text-transform:uppercase}
+.chart-area{background:var(--surface3);border-radius:10px;padding:14px;margin-top:8px;height:170px;position:relative}
+.post-link-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;background:var(--surface3);border:1px solid var(--border);border-radius:7px;color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;margin-top:8px;transition:all .15s}
+.post-link-btn:hover{border-color:var(--accent);background:var(--accent-dim);text-decoration:none}
+/* MODAL */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:640px;max-height:88vh;overflow-y:auto;padding:28px;animation:modalIn .2s cubic-bezier(.4,0,.2,1)}
+@keyframes modalIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.modal-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:20px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-field{display:flex;flex-direction:column;gap:6px}
+.form-field.full{grid-column:1/-1}
+.form-field label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase}
+.form-field input,.form-field select,.form-field textarea{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-family:'Instrument Sans',sans-serif;font-size:13px;outline:none;transition:border-color .15s;resize:vertical}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--accent)}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+/* ANALYTICS */
+.analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.chart-card.full{grid-column:1/-1}
+.chart-card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text2)}
+.chart-card canvas{max-height:220px}
+.chart-card.full canvas{max-height:260px}
+.performers-list{display:flex;flex-direction:column;gap:8px}
+.performer-row{display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:8px;padding:10px 14px}
+.performer-rank{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--text3);width:28px}
+.performer-name{flex:1;font-weight:600;font-size:13px}
+.performer-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent)}
+/* REQUESTS */
+.request-form-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px}
+.request-form-card h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:16px;color:var(--text)}
+/* SETTINGS */
+.settings-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px}
+.settings-card h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:16px}
+.webhook-input-row{display:flex;gap:10px;margin-bottom:12px}
+.webhook-input-row input{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .15s}
+.webhook-input-row input:focus{border-color:var(--accent)}
+.step{display:flex;gap:14px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.step:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--accent-dim);color:var(--accent);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-body{flex:1}
+.step-title{font-weight:600;font-size:14px;margin-bottom:4px}
+.step-desc{font-size:12px;color:var(--text2);line-height:1.7}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--surface3);border:1px solid var(--accent);color:var(--text);padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all .25s;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.error{border-color:var(--accent2)}
+/* MISC */
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-row td{text-align:center;padding:40px;color:var(--text3)}
+/* user chip in sidebar */
+.user-chip{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:10px}
+.user-avatar{width:26px;height:26px;border-radius:50%;background:var(--accent-dim);border:1px solid rgba(124,92,252,.4);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0}
+.user-info-inner{flex:1;overflow:hidden}
+.user-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-email-lbl{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logout-btn{font-size:10px;background:none;border:none;color:var(--text3);cursor:pointer;padding:2px 4px;border-radius:4px;transition:color .15s;font-family:'DM Mono',monospace;letter-spacing:.5px}
+.logout-btn:hover{color:var(--accent2)}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-text">Kreo <span>Hub</span></div>
+    <div class="logo-sub">Influencer CRM</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Overview</div>
+    <div class="nav-item active" data-view="dashboard"><span class="icon">⬡</span> Dashboard</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Influencers</div>
+    <div class="nav-item" data-view="influencers"><span class="icon">◈</span> All Influencers</div>
+    <div class="nav-item" data-view="deliverables"><span class="icon">◎</span> Deliverables</div>
+    <div class="nav-item" data-view="requests"><span class="icon">✦</span> Creator Requests</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Insights</div>
+    <div class="nav-item" data-view="analytics"><span class="icon">◇</span> Analytics</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Config</div>
+    <div class="nav-item" data-view="settings"><span class="icon">⚙</span> Sheet Connect</div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="conn-status">
+      <div class="conn-dot" id="conn-dot"></div>
+      <span id="conn-label">Not connected</span>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);line-height:1.8">
+      <span id="sb-influencers">—</span> influencers<br>
+      <span id="sb-deliverables">—</span> deliverables<br>
+      <span id="sb-sync">—</span>
+    </div>
+    <a href="/api/logout" style="display:flex;align-items:center;gap:8px;padding:8px 0 4px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);text-decoration:none;margin-top:10px;transition:color .15s" onmouseover="this.style.color='var(--accent2)'" onmouseout="this.style.color='var(--text3)'">
+      <span style="font-size:12px">⎋</span> Sign out
+    </a>
+  </div>
+</aside>
+<!-- MAIN -->
+<main class="main">
+  <!-- DASHBOARD -->
+  <div class="view active" id="view-dashboard">
+    <div class="page-header">
+      <div><div class="page-title">Dashboard <span>Overview</span></div><div class="page-sub">Your influencer program at a glance</div></div>
+      <button class="btn btn-secondary btn-sm" onclick="syncData(true)"><span id="sync-icon">↻</span> Sync</button>
+    </div>
+    <div class="period-bar">
+      <div class="period-block">
+        <div class="period-label period-a-label">Period A</div>
+        <div class="period-inputs">
+          <select id="dash-a-from" onchange="renderDashboard()"><option value="">All Time</option></select>
+          <span class="period-arrow">→</span>
+          <select id="dash-a-to" onchange="renderDashboard()"><option value="">Latest</option></select>
+        </div>
+      </div>
+      <button class="btn-compare" id="compare-toggle" onclick="toggleCompare()">
+        <span id="compare-icon">⊕</span> Compare Period
+      </button>
+      <div class="period-block" id="period-b-block" style="display:none">
+        <div class="period-label period-b-label">Period B</div>
+        <div class="period-inputs">
+          <select id="dash-b-from" onchange="renderDashboard()"><option value="">All Time</option></select>
+          <span class="period-arrow">→</span>
+          <select id="dash-b-to" onchange="renderDashboard()"><option value="">Latest</option></select>
+        </div>
+      </div>
+      <div class="divider" id="cat-divider"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <label class="period-label" style="margin:0">Avg Views by</label>
+        <select id="dash-cat" onchange="renderDashboard()"><option value="">All Categories</option></select>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card" style="--accent-color:#7c5cfc">
+        <div class="stat-label" id="s-total-label">Total Influencers</div>
+        <div class="stat-value" id="s-total">—</div>
+        <div class="stat-sub" id="s-total-sub">Across all platforms</div>
+        <div class="stat-compare" id="sc-total"></div>
+      </div>
+      <div class="stat-card" style="--accent-color:#fc5ca8">
+        <div class="stat-label">Deliverables</div>
+        <div class="stat-value" id="s-dels">—</div>
+        <div class="stat-sub" id="s-dels-sub">From tracking sheet</div>
+        <div class="stat-compare" id="sc-dels"></div>
+      </div>
+      <div class="stat-card" style="--accent-color:#5cfcb4">
+        <div class="stat-label">Posted</div>
+        <div class="stat-value" id="s-posted">—</div>
+        <div class="stat-sub">Live assets</div>
+        <div class="stat-compare" id="sc-posted"></div>
+      </div>
+      <div class="stat-card" style="--accent-color:#5cb4fc">
+        <div class="stat-label" id="s-avg-label">Avg Views / Asset</div>
+        <div class="stat-value" id="s-avgviews">—</div>
+        <div class="stat-sub" id="s-avg-sub">Posted assets only</div>
+        <div class="stat-compare" id="sc-avgviews"></div>
+      </div>
+    </div>
+    <div class="stats-grid" style="margin-top:12px;margin-bottom:20px">
+      <div class="stat-card" style="--accent-color:var(--yt)">
+        <div class="stat-label" style="display:flex;align-items:center;gap:6px"><span class="badge badge-yt" style="font-size:9px;padding:1px 6px">▶ YT</span> Total Views</div>
+        <div class="stat-value" id="s-yt-views">—</div>
+        <div class="stat-sub" id="s-yt-sub">Posted YT assets</div>
+      </div>
+      <div class="stat-card" style="--accent-color:var(--ig)">
+        <div class="stat-label" style="display:flex;align-items:center;gap:6px"><span class="badge badge-ig" style="font-size:9px;padding:1px 6px">◈ IG</span> Total Views</div>
+        <div class="stat-value" id="s-ig-views">—</div>
+        <div class="stat-sub" id="s-ig-sub">Posted IG assets</div>
+      </div>
+      <div class="stat-card" style="--accent-color:var(--yt)">
+        <div class="stat-label">YT Avg Views</div>
+        <div class="stat-value" id="s-yt-avg">—</div>
+        <div class="stat-sub" id="s-yt-avg-sub">Per YT deliverable</div>
+      </div>
+      <div class="stat-card" style="--accent-color:var(--ig)">
+        <div class="stat-label">IG Avg Views</div>
+        <div class="stat-value" id="s-ig-avg">—</div>
+        <div class="stat-sub" id="s-ig-avg-sub">Per IG deliverable</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+      <div class="chart-card"><div class="chart-card-title">Views by Platform</div><canvas id="ch-platform" height="180"></canvas></div>
+      <div class="chart-card"><div class="chart-card-title">Category Distribution</div><canvas id="ch-category" height="180"></canvas></div>
+    </div>
+    <div class="chart-card full" style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:16px 20px">
+      <div>
+        <div class="chart-card-title" style="margin-bottom:2px">Sync Instagram Metrics</div>
+        <div style="font-size:11px;color:var(--text3)">Fetch live views via Apify — scoped by product &amp; month to save credits</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select id="dash-ig-product" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:6px 10px;font-family:'Instrument Sans',sans-serif;font-size:12px;outline:none;cursor:pointer"><option value="">Select product…</option></select>
+        <select id="dash-ig-month" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:6px 10px;font-family:'Instrument Sans',sans-serif;font-size:12px;outline:none;cursor:pointer"><option value="">All months</option></select>
+        <button class="btn btn-secondary btn-sm" id="dash-ig-btn" onclick="fetchDashIGMetrics()" style="white-space:nowrap">◈ Fetch IG Metrics</button>
+        <span id="dash-ig-status" style="font-size:11px;color:var(--text3)"></span>
+      </div>
+    </div>
+    <div id="ig-metrics-section" style="display:none;margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="section-title" style="margin:0">◈ Instagram Reel Metrics</div>
+        <span id="ig-metrics-live-badge" style="font-size:10px;color:#fc5ca8;background:rgba(252,92,168,.15);padding:2px 8px;border-radius:4px;font-family:'DM Mono',monospace">LIVE</span>
+      </div>
+      <div id="ig-metrics-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px"></div>
+    </div>
+    <div class="chart-card full" style="margin-bottom:20px"><div class="chart-card-title">Monthly Volume — Deliverables &amp; Views</div><canvas id="ch-monthly" height="160"></canvas></div>
+    <div class="section-title" id="top-performers-title">Top Performers by Views</div>
+    <div class="performers-list" id="top-performers"></div>
+  </div>
+  <!-- INFLUENCERS -->
+  <div class="view" id="view-influencers">
+    <div class="page-header">
+      <div><div class="page-title">All <span>Influencers</span></div><div class="page-sub">Master list · Mapping Sheet</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="syncData(true)">↻ Sync</button>
+        <button class="btn btn-primary" onclick="openModal('add-influencer')">+ Add Influencer</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <input type="text" placeholder="Search name, category, email…" id="f-inf-q" oninput="renderInfluencers()">
+      <select id="f-inf-plt" onchange="renderInfluencers()">
+        <option value="">All Platforms</option>
+        <option value="Instagram">Instagram</option>
+        <option value="Youtube">YouTube</option>
+      </select>
+      <select id="f-inf-cat" onchange="renderInfluencers()"><option value="">All Categories</option></select>
+      <select id="f-inf-tier" onchange="renderInfluencers()">
+        <option value="">All Tiers</option>
+        <option value="NANO">Nano (≤10K)</option>
+        <option value="MICRO">Micro (10K–70K)</option>
+        <option value="MACRO1">Macro 1 (70K–150K)</option>
+        <option value="MACRO2">Macro 2 (150K–300K)</option>
+        <option value="MACRO3">Macro 3 (300K–700K)</option>
+        <option value="MACRO4">Macro 4 (700K+)</option>
+      </select>
+      <select id="f-inf-conn" onchange="renderInfluencers()">
+        <option value="">All Connect Types</option>
+        <option value="Direct">Direct</option>
+        <option value="Agency">Agency</option>
+      </select>
+      <select id="f-inf-posting" onchange="renderInfluencers()">
+        <option value="">All Posting Status</option>
+        <option value="posted">Has Posted</option>
+        <option value="notposted">Has Not Posted</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Influencer</th><th>Platform</th><th>Tier</th><th>Followers</th><th>Category</th><th>Connect</th><th>Deliverables</th><th>Posting</th><th>Actions</th></tr></thead>
+        <tbody id="inf-tbody"><tr class="loading-row"><td colspan="10"><span class="spinner"></span> Connect your sheet to load data</td></tr></tbody>
+      </table>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;color:var(--text3)">
+      <span id="inf-count"></span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-secondary btn-sm" id="inf-prev" onclick="infPage--;renderInfluencers()">← Prev</button>
+        <span id="inf-pages" style="padding:6px 10px"></span>
+        <button class="btn btn-secondary btn-sm" id="inf-next" onclick="infPage++;renderInfluencers()">Next →</button>
+      </div>
+    </div>
+  </div>
+  <!-- DELIVERABLES -->
+  <div class="view" id="view-deliverables">
+    <div class="page-header">
+      <div><div class="page-title">Deliverables <span>Tracker</span></div><div class="page-sub">Overall Tracking Sheet</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="syncData(true)">↻ Sync</button>
+        <button class="btn btn-primary" onclick="openModal('add-deliverable')">+ Add Deliverable</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <input type="text" placeholder="Search influencer, product…" id="f-del-q" oninput="renderDeliverables()">
+      <select id="f-del-status" onchange="renderDeliverables()">
+        <option value="">All Status</option>
+        <option value="Posted">Posted</option>
+        <option value="In progress">In Progress</option>
+        <option value="Did not post">Did Not Post</option>
+      </select>
+      <select id="f-del-asset" onchange="renderDeliverables()">
+        <option value="">All Asset Types</option>
+        <option value="Instagram reel">Instagram Reel</option>
+        <option value="Instagram story">Instagram Story</option>
+        <option value="Instagram post">Instagram Post</option>
+        <option value="Youtube long">YouTube Long</option>
+        <option value="Youtube short">YouTube Short</option>
+        <option value="Integration video">Integration</option>
+      </select>
+      <select id="f-del-month" onchange="renderDeliverables()"><option value="">All Months</option></select>
+      <select id="f-del-product" onchange="renderDeliverables();toggleIGBtn()"><option value="">All Products</option></select>
+      <button class="btn btn-secondary btn-sm" id="ig-fetch-btn" onclick="fetchIGMetrics()" style="white-space:nowrap;opacity:0.4;pointer-events:none">📸 Fetch IG Metrics</button>
+      <span id="ig-fetch-status" style="font-size:11px;color:var(--text3)"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Influencer</th><th>Asset</th><th>Status</th><th>Product</th><th>Posted Date</th><th>Views</th><th>Cost</th><th>Sales</th><th>Actions</th></tr></thead>
+        <tbody id="del-tbody"><tr class="loading-row"><td colspan="10"><span class="spinner"></span> Connect your sheet to load data</td></tr></tbody>
+      </table>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;color:var(--text3)">
+      <span id="del-count"></span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-secondary btn-sm" id="del-prev" onclick="delPage--;renderDeliverables()">← Prev</button>
+        <span id="del-pages" style="padding:6px 10px"></span>
+        <button class="btn btn-secondary btn-sm" id="del-next" onclick="delPage++;renderDeliverables()">Next →</button>
+      </div>
+    </div>
+  </div>
+  <!-- CREATOR REQUESTS -->
+  <div class="view" id="view-requests">
+    <div class="page-header">
+      <div><div class="page-title">Creator <span>Requests</span></div><div class="page-sub">Team requests for new partnerships · writes to Google Sheet</div></div>
+      <button class="btn btn-secondary btn-sm" onclick="syncData(true)">↻ Sync</button>
+    </div>
+    <div class="request-form-card">
+      <h3>Submit a Request</h3>
+      <div class="form-grid">
+        <div class="form-field"><label>Your Name *</label><input type="text" id="rq-by" placeholder="Who is requesting?"></div>
+        <div class="form-field"><label>Creator Name *</label>
+          <input type="text" id="rq-creator" list="rq-creator-datalist" placeholder="Start typing…" oninput="onRqCreatorInput()">
+          <datalist id="rq-creator-datalist"></datalist>
+        </div>
+        <div class="form-field"><label>Platform</label>
+          <select id="rq-platform">
+            <option value="Instagram">Instagram</option>
+            <option value="YouTube">YouTube</option>
+            <option value="Both">Both</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Request Type</label>
+          <select id="rq-type">
+            <option value="New Partnership">New Partnership</option>
+            <option value="Campaign Pitch">Campaign Pitch</option>
+            <option value="Content Review">Content Review</option>
+            <option value="Rate Negotiation">Rate Negotiation</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Product</label>
+          <select id="rq-product" onchange="onRqProductChange()"><option value="">Select product…</option></select>
+        </div>
+        <div class="form-field"><label>SKU ID <span style="color:var(--text3);font-weight:400;font-size:10px">(auto-filled)</span></label>
+          <input type="text" id="rq-sku" placeholder="Auto-fills from product" style="opacity:.8">
+        </div>
+        <div class="form-field"><label>Creator Profile Link</label><input type="text" id="rq-link" placeholder="https://…"></div>
+        <div class="form-field"><label>Estimated Followers</label><input type="text" id="rq-followers" placeholder="e.g. 50K"></div>
+        <div class="form-field full"><label>Notes / Details</label><textarea id="rq-notes" rows="3" placeholder="Why this creator? Any specific campaign, product, or brief?"></textarea></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px">
+        <button class="btn btn-primary" onclick="submitRequest()">
+          <span id="rq-spinner" style="display:none" class="spinner"></span> Submit Request → Sheet
+        </button>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700">All Requests</div>
+      <select id="rq-filter-status" onchange="renderRequests()" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:6px 10px;font-size:13px;outline:none;cursor:pointer">
+        <option value="">All Status</option>
+        <option value="Pending">Pending</option>
+        <option value="Approved">Approved</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Requested By</th><th>Creator</th><th>Platform</th><th>Type</th><th>Followers</th><th>Status</th><th>Date</th><th>Notes</th></tr></thead>
+        <tbody id="req-tbody"><tr class="loading-row"><td colspan="9"><span class="spinner"></span> Connect your sheet to load requests</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- ANALYTICS -->
+  <div class="view" id="view-analytics">
+    <div class="page-header">
+      <div><div class="page-title">Analytics <span>&amp; Insights</span></div><div class="page-sub">Performance cuts across your program</div></div>
+      <button class="btn btn-secondary btn-sm" onclick="syncData(true)">↻ Sync</button>
+    </div>
+    <div class="period-bar">
+      <div class="period-block">
+        <div class="period-label period-a-label">Period A</div>
+        <div class="period-inputs">
+          <select id="an-a-from" onchange="renderAnalytics()"><option value="">All Time</option></select>
+          <span class="period-arrow">→</span>
+          <select id="an-a-to" onchange="renderAnalytics()"><option value="">Latest</option></select>
+        </div>
+      </div>
+      <button class="btn-compare" id="an-compare-toggle" onclick="toggleAnCompare()">
+        <span id="an-compare-icon">⊕</span> Compare Period
+      </button>
+      <div class="period-block" id="an-period-b-block" style="display:none">
+        <div class="period-label period-b-label">Period B</div>
+        <div class="period-inputs">
+          <select id="an-b-from" onchange="renderAnalytics()"><option value="">All Time</option></select>
+          <span class="period-arrow">→</span>
+          <select id="an-b-to" onchange="renderAnalytics()"><option value="">Latest</option></select>
+        </div>
+      </div>
+      <div class="divider" style="width:1px;height:32px;background:var(--border);margin:0 4px"></div>
+      <div class="period-block">
+        <div class="period-label" style="color:var(--text3)">Product</div>
+        <select id="an-product" onchange="renderAnalytics()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:6px 10px;font-family:'Instrument Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;min-width:140px">
+          <option value="">All Products</option>
+        </select>
+      </div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card" style="--accent-color:#7c5cfc"><div class="stat-label">Total Views</div><div class="stat-value" id="an-views">—</div><div class="stat-sub" id="an-views-sub">Period A</div><div class="stat-compare" id="an-sc-views"></div></div>
+      <div class="stat-card" style="--accent-color:#fc5ca8"><div class="stat-label">Total Cost</div><div class="stat-value" id="an-cost">—</div><div class="stat-sub" id="an-cost-sub">Influencer fees</div><div class="stat-compare" id="an-sc-cost"></div></div>
+      <div class="stat-card" style="--accent-color:#5cfcb4"><div class="stat-label">Total Orders</div><div class="stat-value" id="an-orders">—</div><div class="stat-sub" id="an-orders-sub">Attributed</div><div class="stat-compare" id="an-sc-orders"></div></div>
+      <div class="stat-card" style="--accent-color:#fce45c"><div class="stat-label">Overall CPV</div><div class="stat-value" id="an-cpv">—</div><div class="stat-sub" id="an-cpv-sub">Cost per view</div><div class="stat-compare" id="an-sc-cpv"></div></div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-top:-12px">
+      <div class="stat-card" style="--accent-color:#5cb4fc"><div class="stat-label">Total Deliverables</div><div class="stat-value" id="an-dels">—</div><div class="stat-sub" id="an-dels-sub">All statuses</div><div class="stat-compare" id="an-sc-dels"></div></div>
+      <div class="stat-card" style="--accent-color:#5cfcb4"><div class="stat-label">Posted</div><div class="stat-value" id="an-posted">—</div><div class="stat-sub" id="an-posted-sub">Live assets</div><div class="stat-compare" id="an-sc-posted"></div></div>
+      <div class="stat-card" style="--accent-color:#5cb4fc"><div class="stat-label">In Progress</div><div class="stat-value" id="an-inprogress">—</div><div class="stat-sub" id="an-inprogress-sub">Being worked on</div><div class="stat-compare" id="an-sc-inprogress"></div></div>
+      <div class="stat-card" style="--accent-color:#fc5c7d"><div class="stat-label">Did Not Post</div><div class="stat-value" id="an-notposted">—</div><div class="stat-sub" id="an-notposted-sub">Dropped</div><div class="stat-compare" id="an-sc-notposted"></div></div>
+    </div>
+    <div style="margin-bottom:20px">
+      <div class="section-title" id="an-nr-title">New vs Repeat Influencers</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px">
+        <div class="stat-card" style="--accent-color:#5cfcb4"><div class="stat-label">New</div><div class="stat-value" id="an-new">—</div><div class="stat-sub">First-time in period</div><div class="stat-compare" id="an-sc-new"></div></div>
+        <div class="stat-card" style="--accent-color:#7c5cfc"><div class="stat-label">Repeat</div><div class="stat-value" id="an-repeat">—</div><div class="stat-sub">Worked with before</div><div class="stat-compare" id="an-sc-repeat"></div></div>
+        <div class="stat-card" style="--accent-color:#fc9c5c"><div class="stat-label">New Rate</div><div class="stat-value" id="an-newrate">—</div><div class="stat-sub">% of active influencers</div><div class="stat-compare" id="an-sc-newrate"></div></div>
+        <div class="stat-card" style="--accent-color:#5cb4fc"><div class="stat-label">Avg Views · New</div><div class="stat-value" id="an-newviews">—</div><div class="stat-sub">vs repeat below</div><div class="stat-compare" id="an-sc-newviews"></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="chart-card"><div class="chart-card-title" id="an-nr-chart-title">New vs Repeat Split</div><canvas id="ch-newrepeat" height="200"></canvas></div>
+        <div class="chart-card"><div class="chart-card-title">Avg Views: New vs Repeat</div><canvas id="ch-nr-views" height="200"></canvas></div>
+      </div>
+      <div class="table-wrap" style="margin-top:16px">
+        <table>
+          <thead><tr><th>Influencer</th><th>Type</th><th>Category</th><th>Tier</th><th>Deliverables (Period)</th><th>Views (Period)</th><th>Cost (Period)</th><th>First Ever Deliverable</th></tr></thead>
+          <tbody id="an-nr-tbody"><tr><td colspan="8" class="table-empty">Select a period to see breakdown</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="analytics-grid">
+      <div class="chart-card"><div class="chart-card-title" id="an-av-title">Views by Asset Type</div><canvas id="ch-av" height="220"></canvas></div>
+      <div class="chart-card"><div class="chart-card-title" id="an-ac-title">Cost by Asset Type</div><canvas id="ch-ac" height="220"></canvas></div>
+      <div class="chart-card full"><div class="chart-card-title" id="an-topinf-title">Top 10 Influencers by Total Views</div><canvas id="ch-topinf" height="240"></canvas></div>
+      <div class="chart-card"><div class="chart-card-title">Products by Deliverable Count</div><canvas id="ch-prod" height="220"></canvas></div>
+      <div class="chart-card"><div class="chart-card-title">Tier Distribution</div><canvas id="ch-tier" height="220"></canvas></div>
+    </div>
+  </div>
+  <!-- SETTINGS -->
+  <div class="view" id="view-settings">
+    <div class="page-header">
+      <div><div class="page-title">Sheet <span>Connect</span></div><div class="page-sub">Connect your Google Sheet via Apps Script webhook</div></div>
+    </div>
+    <div class="settings-card">
+      <h3>Webhook URL</h3>
+      <div class="webhook-input-row">
+        <input type="text" id="webhook-url" placeholder="https://script.google.com/macros/s/…/exec" value="">
+        <button class="btn btn-primary" onclick="saveAndTest()">Save &amp; Test</button>
+      </div>
+      <div id="test-result" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);min-height:18px"></div>
+    </div>
+    <div class="settings-card">
+      <h3>Manual Sync</h3>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn btn-primary" onclick="syncData(true)">↻ Sync Now</button>
+        <span style="font-size:13px;color:var(--text2)">Last synced: <span id="last-sync-time">never</span></span>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+<!-- PROFILE PANEL -->
+<div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
+<div class="profile-panel" id="profile-panel">
+  <div class="panel-header">
+    <div>
+      <div class="panel-name" id="panel-name">—</div>
+      <div style="display:flex;gap:8px;margin-top:8px" id="panel-badges"></div>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+</div>
+<!-- ADD INFLUENCER MODAL -->
+<div class="modal-backdrop" id="modal-add-influencer">
+  <div class="modal">
+    <div class="modal-title">Add Influencer</div>
+    <div class="form-grid">
+      <div class="form-field full"><label>Influencer Name *</label><input type="text" id="ni-name" placeholder="Full name as it appears in sheet"></div>
+      <div class="form-field"><label>Platform(s)</label><select id="ni-platform"><option value="Instagram">Instagram</option><option value="Youtube">YouTube</option><option value="Both">Both</option></select></div>
+      <div class="form-field"><label>Category</label><input type="text" id="ni-category" placeholder="e.g. Tech Reviewer"></div>
+      <div class="form-field full"><label>Page Link</label><input type="text" id="ni-link" placeholder="https://…"></div>
+      <div class="form-field"><label>Follower Count</label><input type="text" id="ni-followers" placeholder="e.g. 52000 or 52K"></div>
+      <div class="form-field"><label>Connect Type</label><select id="ni-connect"><option value="Direct">Direct</option><option value="Agency">Agency</option></select></div>
+      <div class="form-field"><label>State</label><input type="text" id="ni-state" placeholder="e.g. Maharashtra"></div>
+      <div class="form-field"><label>Language</label><input type="text" id="ni-language" placeholder="e.g. Hindi, English"></div>
+      <div class="form-field"><label>Email</label><input type="email" id="ni-email"></div>
+      <div class="form-field"><label>Phone</label><input type="text" id="ni-phone"></div>
+      <div class="form-field"><label>Affiliate ID</label><input type="text" id="ni-affiliate"></div>
+      <div class="form-field"><label>Discount Code</label><input type="text" id="ni-discount"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('add-influencer')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddInfluencer()"><span id="ni-spinner" style="display:none" class="spinner"></span> Save to Sheet</button>
+    </div>
+  </div>
+</div>
+<!-- EDIT INFLUENCER MODAL -->
+<div class="modal-backdrop" id="modal-edit-influencer">
+  <div class="modal">
+    <div class="modal-title">Edit Influencer</div>
+    <input type="hidden" id="ei-orig-name">
+    <div class="form-grid">
+      <div class="form-field full"><label>Name</label><input type="text" id="ei-name"></div>
+      <div class="form-field"><label>Platform</label><select id="ei-platform"><option value="Instagram">Instagram</option><option value="Youtube">YouTube</option><option value="Both">Both</option></select></div>
+      <div class="form-field"><label>Category</label><input type="text" id="ei-category"></div>
+      <div class="form-field full"><label>Page Link</label><input type="text" id="ei-link"></div>
+      <div class="form-field"><label>Followers</label><input type="text" id="ei-followers"></div>
+      <div class="form-field"><label>Connect Type</label><select id="ei-connect"><option value="Direct">Direct</option><option value="Agency">Agency</option></select></div>
+      <div class="form-field"><label>State</label><input type="text" id="ei-state"></div>
+      <div class="form-field"><label>Language</label><input type="text" id="ei-language"></div>
+      <div class="form-field"><label>Email</label><input type="text" id="ei-email"></div>
+      <div class="form-field"><label>Phone</label><input type="text" id="ei-phone"></div>
+      <div class="form-field"><label>Affiliate ID</label><input type="text" id="ei-affiliate"></div>
+      <div class="form-field"><label>Discount Code</label><input type="text" id="ei-discount"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('edit-influencer')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditInfluencer()"><span id="ei-spinner" style="display:none" class="spinner"></span> Update Sheet</button>
+    </div>
+  </div>
+</div>
+<!-- ADD DELIVERABLE MODAL -->
+<div class="modal-backdrop" id="modal-add-deliverable">
+  <div class="modal">
+    <div class="modal-title">Add Deliverable</div>
+    <div class="form-grid">
+      <div class="form-field full"><label>Influencer Name *</label>
+        <input type="text" id="nd-influencer" list="nd-datalist" placeholder="Start typing…">
+        <datalist id="nd-datalist"></datalist>
+      </div>
+      <div class="form-field"><label>Asset Type</label>
+        <select id="nd-asset">
+          <option value="Instagram reel">Instagram Reel</option>
+          <option value="Instagram story">Instagram Story</option>
+          <option value="Instagram post">Instagram Post</option>
+          <option value="Youtube long">YouTube Long</option>
+          <option value="Youtube short">YouTube Short</option>
+          <option value="Integration video">Integration Video</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Status</label>
+        <select id="nd-status"><option value="In progress">In Progress</option><option value="Posted">Posted</option><option value="Did not post">Did Not Post</option></select>
+      </div>
+      <div class="form-field"><label>Product</label><select id="nd-product" onchange="onNdProductChange()"><option value="">Select product…</option></select></div>
+      <div class="form-field"><label>SKU ID</label><input type="text" id="nd-sku" placeholder="Auto-fills from product" style="opacity:.8"></div>
+      <div class="form-field"><label>Scheduled Date</label><input type="date" id="nd-sched"></div>
+      <div class="form-field"><label>Date of Posting</label><input type="date" id="nd-posted"></div>
+      <div class="form-field full"><label>Post Link</label><input type="text" id="nd-link" placeholder="https://…"></div>
+      <div class="form-field"><label>Influencer Cost (₹)</label><input type="number" id="nd-cost" min="0"></div>
+      <div class="form-field"><label>Total Sales (₹)</label><input type="number" id="nd-sales" min="0"></div>
+      <div class="form-field"><label>Orders</label><input type="number" id="nd-orders" min="0"></div>
+      <div class="form-field"><label>COGS (₹)</label><input type="number" id="nd-cogs" min="0"></div>
+      <div class="form-field full"><label>Comments</label><textarea id="nd-comments" rows="2"></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('add-deliverable')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddDeliverable()"><span id="nd-spinner" style="display:none" class="spinner"></span> Save to Sheet</button>
+    </div>
+  </div>
+</div>
+<!-- EDIT DELIVERABLE MODAL -->
+<div class="modal-backdrop" id="modal-edit-deliverable">
+  <div class="modal">
+    <div class="modal-title">Edit Deliverable</div>
+    <input type="hidden" id="ed-row">
+    <div class="form-grid">
+      <div class="form-field full"><label>Influencer</label><input type="text" id="ed-influencer" readonly style="opacity:.6"></div>
+      <div class="form-field"><label>Status</label>
+        <select id="ed-status"><option value="In progress">In Progress</option><option value="Posted">Posted</option><option value="Did not post">Did Not Post</option></select>
+      </div>
+      <div class="form-field"><label>Date of Posting</label><input type="date" id="ed-posted"></div>
+      <div class="form-field full"><label>Post Link</label><input type="text" id="ed-link"></div>
+      <div class="form-field"><label>Views (YT)</label><input type="number" id="ed-views" min="0"></div>
+      <div class="form-field"><label>IG Views</label><input type="number" id="ed-igviews" min="0"></div>
+      <div class="form-field"><label>Influencer Cost (₹)</label><input type="number" id="ed-cost" min="0"></div>
+      <div class="form-field"><label>Total Sales (₹)</label><input type="number" id="ed-sales" min="0"></div>
+      <div class="form-field"><label>Orders</label><input type="number" id="ed-orders" min="0"></div>
+      <div class="form-field full"><label>Comments</label><textarea id="ed-comments" rows="2"></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('edit-deliverable')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditDeliverable()"><span id="ed-spinner" style="display:none" class="spinner"></span> Update Sheet</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// ================================================================
+// STATE
+// ================================================================
+let influencers = [];
+let deliverables = [];
+let requests = [];
+let infPage = 0, delPage = 0;
+const PG = 25;
+let charts = {};
+
+// Returns best available view count for a deliverable
+// Priority: live YouTube API views > manual YT views > IG views
+function getViews(d) {
+  return (d.ytViews || d.manualViews || 0) + (d.igViews || 0);
+}
+// ================================================================
+// NAV
+// ================================================================
+function showView(name, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  (el || document.querySelector(`[data-view="${name}"]`)).classList.add('active');
+  if (name === 'dashboard')    renderDashboard();
+  if (name === 'influencers')  { infPage = 0; renderInfluencers(); }
+  if (name === 'deliverables') { delPage = 0; renderDeliverables(); }
+  if (name === 'analytics')    renderAnalytics();
+  if (name === 'requests')     renderRequests();
+}
+// ================================================================
+// API
+// ================================================================
+async function apiGet(params) {
+  const res = await fetch('/api/data?' + new URLSearchParams(params));
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+async function apiPost(body) {
+  const res = await fetch('/api/data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+// ================================================================
+// SYNC
+// ================================================================
+async function syncData(showToastMsg) {
+  setConnStatus('loading', 'Syncing…');
+  document.getElementById('sync-icon').textContent = '⟳';
+  try {
+    const data = await apiGet({ action: 'getAll' });
+    if (data.error) throw new Error(data.error);
+    influencers  = data.influencers  || [];
+    deliverables = data.deliverables || [];
+    requests     = data.requests     || [];
+    setConnStatus('connected', 'Connected');
+    document.getElementById('sb-influencers').textContent  = influencers.length;
+    document.getElementById('sb-deliverables').textContent = deliverables.length;
+    const now = new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'});
+    document.getElementById('sb-sync').textContent = 'Synced ' + now;
+    document.getElementById('last-sync-time').textContent = now;
+    populateFilters();
+    renderDashboard();
+    renderInfluencers();
+    renderDeliverables();
+    renderAnalytics();
+    renderRequests();
+    if (showToastMsg) showToast('✓ Synced — ' + influencers.length + ' influencers, ' + deliverables.length + ' deliverables');
+  } catch(e) {
+    setConnStatus('error', 'Error');
+    showToast('✗ Sync failed: ' + e.message, true);
+  }
+  document.getElementById('sync-icon').textContent = '↻';
+}
+function setConnStatus(state, label) {
+  const dot = document.getElementById('conn-dot');
+  dot.className = 'conn-dot ' + state;
+  document.getElementById('conn-label').textContent = label;
+}
+// ================================================================
+// SETTINGS
+// ================================================================
+async function saveAndTest() {
+  const url = document.getElementById('webhook-url').value.trim();
+  if (!url) { showToast('⚠ Enter a URL first', true); return; }
+  WEBHOOK = url;
+  localStorage.setItem('kreo_webhook', url);
+  const el = document.getElementById('test-result');
+  el.textContent = 'Testing…'; el.style.color = 'var(--text3)';
+  try {
+    const data = await apiGet({ action: 'getInfluencers' });
+    if (data.error) throw new Error(data.error);
+    el.textContent = '✓ Connected — ' + data.length + ' influencers found';
+    el.style.color = 'var(--accent3)';
+    syncData(true);
+  } catch(e) {
+    el.textContent = '✗ ' + e.message;
+    el.style.color = 'var(--accent2)';
+  }
+}
+// ================================================================
+// HELPERS
+// ================================================================
+function getTier(f) {
+  const n = parseF(f); if (!n) return null;
+  if (n < 10000)  return 'NANO';
+  if (n < 70000)  return 'MICRO';
+  if (n < 150000) return 'MACRO1';
+  if (n < 300000) return 'MACRO2';
+  if (n < 700000) return 'MACRO3';
+  return 'MACRO4';
+}
+function tierLabel(t) { return {NANO:'Nano',MICRO:'Micro',MACRO1:'Macro 1',MACRO2:'Macro 2',MACRO3:'Macro 3',MACRO4:'Macro 4'}[t]||t; }
+function tierColor(t) { return {NANO:'var(--nano)',MICRO:'var(--micro)',MACRO1:'var(--macro1)',MACRO2:'var(--macro2)',MACRO3:'var(--macro3)',MACRO4:'var(--macro4)'}[t]||'var(--text3)'; }
+function parseF(v) {
+  if (!v) return 0;
+  const s = String(v).replace(/,/g,'').trim();
+  const m = s.match(/([\d.]+)\s*([KkMm])?/);
+  if (!m) return 0;
+  let n = parseFloat(m[1]);
+  const u = (m[2]||'').toLowerCase();
+  if (u==='k') n*=1000; if (u==='m') n*=1000000;
+  return Math.round(n);
+}
+function fmtF(v) { const n=parseF(v); if(!n) return v||'—'; if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1000) return (n/1000).toFixed(1)+'K'; return n; }
+function fmtN(n) { if(!n) return '—'; if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1000) return (n/1000).toFixed(1)+'K'; return n; }
+function fmtC(n) { if(!n) return '—'; if(n>=1e5) return '₹'+(n/1e5).toFixed(1)+'L'; if(n>=1000) return '₹'+(n/1000).toFixed(1)+'K'; return '₹'+n; }
+function fmtD(d) { if(!d) return '—'; const dt=new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'}); }
+function platBadge(p) {
+  const s=String(p||'').toLowerCase();
+  if(s.includes('youtube')) return `<span class="badge badge-yt">▶ YT</span>`;
+  if(s.includes('instagram')) return `<span class="badge badge-ig">◈ IG</span>`;
+  return `<span class="badge" style="background:var(--surface3);color:var(--text2)">${p||'—'}</span>`;
+}
+function statusBadge(s) {
+  if(s==='Posted') return `<span class="badge badge-posted">● Posted</span>`;
+  if(s==='In progress') return `<span class="badge badge-inprogress">◌ In Progress</span>`;
+  return `<span class="badge badge-notposted">✕ Did Not Post</span>`;
+}
+function reqStatusBadge(s) {
+  if(s==='Approved') return `<span class="badge badge-approved">✓ Approved</span>`;
+  if(s==='Rejected') return `<span class="badge badge-rejected">✕ Rejected</span>`;
+  return `<span class="badge badge-pending">◌ Pending</span>`;
+}
+function getDelMonth(d) { return d.scheduledMonth || d.monthOfPosting || ''; }
+function populateFilters() {
+  const cats = [...new Set(influencers.map(i=>i.category).filter(Boolean))].sort();
+  document.getElementById('f-inf-cat').innerHTML = '<option value="">All Categories</option>' + cats.map(c=>`<option>${c}</option>`).join('');
+  document.getElementById('dash-cat').innerHTML  = '<option value="">All Categories</option>' + cats.map(c=>`<option>${c}</option>`).join('');
+  const months = [...new Set(deliverables.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>m.length>4))].sort();
+  ['dash-a-from','dash-b-from','an-a-from','an-b-from'].forEach(id => {
+    const el=document.getElementById(id); if(el) el.innerHTML='<option value="">All Time</option>'+months.map(m=>`<option>${m}</option>`).join('');
+  });
+  ['dash-a-to','dash-b-to','an-a-to','an-b-to'].forEach(id => {
+    const el=document.getElementById(id); if(el) el.innerHTML='<option value="">Latest</option>'+[...months].reverse().map(m=>`<option>${m}</option>`).join('');
+  });
+  document.getElementById('f-del-month').innerHTML = '<option value="">All Months</option>'+[...months].reverse().map(m=>`<option>${m}</option>`).join('');
+  const prods = [...new Set(deliverables.map(d=>d.product).filter(Boolean))].sort();
+  document.getElementById('f-del-product').innerHTML = '<option value="">All Products</option>'+prods.map(p=>`<option>${p}</option>`).join('');
+  const anProd=document.getElementById('an-product'); if(anProd) anProd.innerHTML='<option value="">All Products</option>'+prods.map(p=>`<option>${p}</option>`).join('');
+  const rqProd=document.getElementById('rq-product'); if(rqProd) rqProd.innerHTML='<option value="">Select product…</option>'+prods.map(p=>`<option>${p}</option>`).join('');
+  const ndProd=document.getElementById('nd-product'); if(ndProd) ndProd.innerHTML='<option value="">Select product…</option>'+prods.map(p=>`<option>${p}</option>`).join('');
+  const rqDl=document.getElementById('rq-creator-datalist'); if(rqDl) rqDl.innerHTML=influencers.map(i=>`<option value="${i.name}">`).join('');
+  document.getElementById('nd-datalist').innerHTML=influencers.map(i=>`<option value="${i.name}">`).join('');
+  // Dashboard IG sync dropdowns
+  const dashIGProd=document.getElementById('dash-ig-product'); if(dashIGProd) dashIGProd.innerHTML='<option value="">Select product…</option>'+prods.map(p=>`<option>${p}</option>`).join('');
+  const dashIGMon=document.getElementById('dash-ig-month'); if(dashIGMon) dashIGMon.innerHTML='<option value="">All months</option>'+[...months].reverse().map(m=>`<option>${m}</option>`).join('');
+}
+// ================================================================
+// PERIOD COMPARE TOGGLE — DASHBOARD
+// ================================================================
+let compareActive = false;
+function toggleCompare() {
+  compareActive = !compareActive;
+  const btn=document.getElementById('compare-toggle');
+  document.getElementById('period-b-block').style.display = compareActive ? 'flex' : 'none';
+  btn.classList.toggle('active', compareActive);
+  document.getElementById('compare-icon').textContent = compareActive ? '⊖' : '⊕';
+  btn.childNodes[1].textContent = compareActive ? ' Hide Compare' : ' Compare Period';
+  renderDashboard();
+}
+function getPeriodDels(fromId, toId) {
+  const from=document.getElementById(fromId)?document.getElementById(fromId).value:'';
+  const to=document.getElementById(toId)?document.getElementById(toId).value:'';
+  if(!from&&!to) return deliverables;
+  const allMonths=[...new Set(deliverables.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>m.length>4))].sort();
+  const start=from||allMonths[0]; const end=to||allMonths[allMonths.length-1];
+  return deliverables.filter(d=>{ const m=getDelMonth(d); return m&&m>=start&&m<=end; });
+}
+function periodLabel(fromId, toId) {
+  const from=document.getElementById(fromId)?document.getElementById(fromId).value:'';
+  const to=document.getElementById(toId)?document.getElementById(toId).value:'';
+  if(!from&&!to) return 'All Time';
+  if(from===to||(!to&&from)) return from||'All Time';
+  return `${from||'Start'} → ${to||'Latest'}`;
+}
+function calcStats(dels, selCat) {
+  let catNames=null;
+  if(selCat) catNames=new Set(influencers.filter(i=>i.category===selCat).map(i=>i.name));
+  const posted=dels.filter(d=>d.status==='Posted');
+  const postedView=catNames?posted.filter(d=>catNames.has(d.influencer)):posted;
+  const totalViews=postedView.reduce((s,d)=>s+getViews(d),0);
+  return { infs:new Set(dels.map(d=>d.influencer).filter(Boolean)).size, dels:dels.length, posted:posted.length, avgV:postedView.length?Math.round(totalViews/postedView.length):0 };
+}
+function renderDelta(el, valA, valB) {
+  if(!compareActive||!valB){el.innerHTML='';return;}
+  const diff=valA-valB; const pct=valB>0?((diff/valB)*100).toFixed(1):null;
+  const cls=diff>0?'delta-up':diff<0?'delta-down':'delta-flat';
+  const arrow=diff>0?'↑':diff<0?'↓':'→';
+  const pctStr=pct!==null?` (${pct>0?'+':''}${pct}%)`:'';
+  el.innerHTML=`<span class="${cls}">${arrow} ${fmtN(Math.abs(diff))}${pctStr}</span> <span class="period-b-val">vs ${fmtN(valB)}</span>`;
+}
+// ================================================================
+// DASHBOARD
+// ================================================================
+function renderDashboard() {
+  const selCat=document.getElementById('dash-cat')?document.getElementById('dash-cat').value:'';
+  const delsA=getPeriodDels('dash-a-from','dash-a-to');
+  const delsB=compareActive?getPeriodDels('dash-b-from','dash-b-to'):null;
+  const statsA=calcStats(delsA,selCat);
+  const statsB=delsB?calcStats(delsB,selCat):null;
+  const lblA=periodLabel('dash-a-from','dash-a-to');
+  const lblB=compareActive?periodLabel('dash-b-from','dash-b-to'):'';
+  const isAllTime=!document.getElementById('dash-a-from').value&&!document.getElementById('dash-a-to').value;
+  document.getElementById('s-total-label').textContent=isAllTime?'Total Influencers':'Active Influencers';
+  document.getElementById('s-total-sub').textContent=lblA;
+  document.getElementById('s-dels-sub').textContent=lblA;
+  document.getElementById('s-avg-label').textContent=selCat?`Avg Views · ${selCat}`:'Avg Views / Asset';
+  document.getElementById('s-avg-sub').textContent=selCat?`${lblA} · ${selCat}`:lblA;
+  document.getElementById('top-performers-title').textContent=isAllTime?'Top Performers by Views':`Top Performers · ${lblA}`;
+  document.getElementById('s-total').textContent=isAllTime?(influencers.length||'—'):(statsA.infs||'—');
+  document.getElementById('s-dels').textContent=statsA.dels||'—';
+  document.getElementById('s-posted').textContent=statsA.posted||'—';
+  document.getElementById('s-avgviews').textContent=statsA.avgV?fmtN(statsA.avgV):'—';
+  renderDelta(document.getElementById('sc-total'),isAllTime?influencers.length:statsA.infs,statsB?statsB.infs:0);
+  renderDelta(document.getElementById('sc-dels'),statsA.dels,statsB?statsB.dels:0);
+  renderDelta(document.getElementById('sc-posted'),statsA.posted,statsB?statsB.posted:0);
+  renderDelta(document.getElementById('sc-avgviews'),statsA.avgV,statsB?statsB.avgV:0);
+  // Platform-split views (YT vs IG)
+  const isYTAsset = d => String(d.asset||'').toLowerCase().includes('youtube') || String(d.asset||'').toLowerCase().includes('integration');
+  const ytPosted = delsA.filter(d => isYTAsset(d) && d.status==='Posted');
+  const igPosted = delsA.filter(d => !isYTAsset(d) && d.status==='Posted');
+  const ytTotalV = ytPosted.reduce((s,d)=>s+(d.ytViews||d.manualViews||0),0);
+  const igTotalV = igPosted.reduce((s,d)=>s+(d.igViews||0),0);
+  const hasYTLive = ytPosted.some(d=>d.ytViews>0);
+  const hasIGLive = igPosted.some(d=>d.igLive);
+  document.getElementById('s-yt-views').textContent = ytTotalV ? fmtN(ytTotalV) : '—';
+  document.getElementById('s-ig-views').textContent = igTotalV ? fmtN(igTotalV) : '—';
+  document.getElementById('s-yt-sub').innerHTML = hasYTLive ? 'Posted YT assets &nbsp;<span style="font-size:9px;color:var(--accent);background:rgba(124,92,252,.15);padding:1px 5px;border-radius:4px">LIVE</span>' : 'Posted YT assets';
+  document.getElementById('s-ig-sub').innerHTML = hasIGLive ? 'Posted IG assets &nbsp;<span style="font-size:9px;color:#fc5ca8;background:rgba(252,92,168,.15);padding:1px 5px;border-radius:4px">LIVE</span>' : 'Posted IG assets · <a href="#" onclick="document.getElementById(\'dash-ig-product\').scrollIntoView({behavior:\'smooth\'});return false;" style="color:var(--accent);text-decoration:none;font-size:10px">Sync ↓</a>';
+  document.getElementById('s-yt-avg').textContent = ytPosted.length ? fmtN(Math.round(ytTotalV/ytPosted.length)) : '—';
+  document.getElementById('s-ig-avg').textContent = igPosted.length ? fmtN(Math.round(igTotalV/igPosted.length)) : '—';
+  document.getElementById('s-yt-avg-sub').textContent = ytPosted.length ? `${ytPosted.length} YT deliverables` : 'No posted YT assets';
+  document.getElementById('s-ig-avg-sub').textContent = igPosted.length ? `${igPosted.length} IG deliverables` : 'No posted IG assets';
+  // Platform chart — views by platform
+  mkChart('ch-platform','doughnut',{labels:['YouTube','Instagram'],datasets:[{data:[ytTotalV,igTotalV],backgroundColor:['rgba(252,92,92,.8)','rgba(252,92,168,.8)'],borderColor:'var(--bg)',borderWidth:3}]});
+  const catMap={};
+  influencers.forEach(i=>{if(i.category) catMap[i.category]=(catMap[i.category]||0)+1;});
+  const topCats=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  mkChart('ch-category','bar',{labels:topCats.map(c=>c[0]),datasets:[{data:topCats.map(c=>c[1]),backgroundColor:'rgba(124,92,252,.7)',borderRadius:4}]},{indexAxis:'y'});
+  const monthMap={};
+  deliverables.forEach(d=>{const m=getDelMonth(d);if(m&&m.length>4){if(!monthMap[m])monthMap[m]={count:0,views:0};monthMap[m].count++;monthMap[m].views+=getViews(d);}});
+  const allMonths=Object.keys(monthMap).sort().slice(-16);
+  if(compareActive&&delsB){
+    const mmA={},mmB={};
+    delsA.forEach(d=>{const m=getDelMonth(d);if(m&&m.length>4){if(!mmA[m])mmA[m]={count:0,views:0};mmA[m].count++;mmA[m].views+=getViews(d);}});
+    delsB.forEach(d=>{const m=getDelMonth(d);if(m&&m.length>4){if(!mmB[m])mmB[m]={count:0,views:0};mmB[m].count++;mmB[m].views+=getViews(d);}});
+    const cmpMonths=[...new Set([...Object.keys(mmA),...Object.keys(mmB)])].sort().slice(-16);
+    mkChart('ch-monthly','bar',{labels:cmpMonths,datasets:[
+      {label:`${lblA} — Deliverables`,data:cmpMonths.map(m=>(mmA[m]||{}).count||0),backgroundColor:'rgba(124,92,252,.7)',borderRadius:3,yAxisID:'y'},
+      {label:`${lblB} — Deliverables`,data:cmpMonths.map(m=>(mmB[m]||{}).count||0),backgroundColor:'rgba(252,92,125,.5)',borderRadius:3,yAxisID:'y'},
+      {label:`${lblA} — Views`,data:cmpMonths.map(m=>(mmA[m]||{}).views||0),type:'line',borderColor:'rgba(92,252,180,.9)',backgroundColor:'transparent',tension:.4,pointRadius:3,yAxisID:'y2'},
+      {label:`${lblB} — Views`,data:cmpMonths.map(m=>(mmB[m]||{}).views||0),type:'line',borderColor:'rgba(252,92,125,.9)',backgroundColor:'transparent',tension:.4,pointRadius:3,borderDash:[4,3],yAxisID:'y2'}
+    ]},{scales:{x:{ticks:{color:'#9896b0',font:{size:10}},grid:{color:'rgba(42,42,66,.5)'}},y:{ticks:{color:'#9896b0',font:{size:10}},grid:{color:'rgba(42,42,66,.5)'},title:{display:true,text:'Deliverables',color:'#5a5878',font:{size:9}}},y2:{position:'right',ticks:{color:'#5cfcb4',font:{size:10}},grid:{display:false},title:{display:true,text:'Views',color:'#5cfcb4',font:{size:9}}}}});
+  } else {
+    mkChart('ch-monthly','bar',{labels:allMonths,datasets:[
+      {label:'Deliverables',data:allMonths.map(m=>monthMap[m].count),backgroundColor:'rgba(124,92,252,.6)',borderRadius:4,yAxisID:'y'},
+      {label:'Total Views',data:allMonths.map(m=>monthMap[m].views),type:'line',borderColor:'var(--accent3)',backgroundColor:'rgba(92,252,180,.08)',fill:true,tension:.4,pointBackgroundColor:'var(--accent3)',pointRadius:3,yAxisID:'y2'}
+    ]},{scales:{x:{ticks:{color:'#9896b0',font:{size:10}},grid:{color:'rgba(42,42,66,.5)'}},y:{ticks:{color:'#9896b0',font:{size:10}},grid:{color:'rgba(42,42,66,.5)'},title:{display:true,text:'Deliverables',color:'#5a5878',font:{size:9}}},y2:{position:'right',ticks:{color:'#5cfcb4',font:{size:10}},grid:{display:false},title:{display:true,text:'Views',color:'#5cfcb4',font:{size:9}}}}});
+  }
+  renderIGMetrics();
+  const infVMapA={};
+  delsA.forEach(d=>{const v=getViews(d);if(d.influencer&&v)infVMapA[d.influencer]=(infVMapA[d.influencer]||0)+v;});
+  const top5A=Object.entries(infVMapA).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if(compareActive&&delsB){
+    const infVMapB={};
+    delsB.forEach(d=>{const v=getViews(d);if(d.influencer&&v)infVMapB[d.influencer]=(infVMapB[d.influencer]||0)+v;});
+    const top5B=Object.entries(infVMapB).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    document.getElementById('top-performers').innerHTML=`<div class="performers-compare">
+      <div><div class="performers-col-title" style="color:var(--accent)">${lblA}</div>${top5A.map((p,i)=>`<div class="performer-row"><div class="performer-rank">${i+1}</div><div class="performer-name">${p[0]}</div><div class="performer-val">${fmtN(p[1])}</div></div>`).join('')}</div>
+      <div><div class="performers-col-title" style="color:var(--accent2)">${lblB}</div>${top5B.map((p,i)=>`<div class="performer-row"><div class="performer-rank">${i+1}</div><div class="performer-name">${p[0]}</div><div class="performer-val" style="color:var(--accent2)">${fmtN(p[1])}</div></div>`).join('')}</div>
+    </div>`;
+  } else {
+    document.getElementById('top-performers').innerHTML=top5A.length
+      ?top5A.map((p,i)=>`<div class="performer-row"><div class="performer-rank">${i+1}</div><div class="performer-name">${p[0]}</div><div class="performer-val">${fmtN(p[1])} views</div></div>`).join('')
+      :`<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px">No view data for this period</div>`;
+  }
+}
+// ================================================================
+// INFLUENCERS TABLE
+// ================================================================
+let filtInf=[];
+function renderInfluencers() {
+  const q=(document.getElementById('f-inf-q').value||'').toLowerCase();
+  const plt=document.getElementById('f-inf-plt').value;
+  const cat=document.getElementById('f-inf-cat').value;
+  const tier=document.getElementById('f-inf-tier').value;
+  const conn=document.getElementById('f-inf-conn').value;
+  const posting=document.getElementById('f-inf-posting').value;
+  filtInf=influencers.filter(i=>{
+    if(q&&!`${i.name} ${i.category} ${i.email}`.toLowerCase().includes(q)) return false;
+    if(plt){const p=String(i.platform||'').toLowerCase();if(plt==='Instagram'&&!p.includes('instagram'))return false;if(plt==='Youtube'&&!p.includes('youtube'))return false;}
+    if(cat&&i.category!==cat) return false;
+    if(tier&&getTier(i.followers)!==tier) return false;
+    if(conn&&i.connectType!==conn) return false;
+    if(posting){const hasDels=deliverables.filter(d=>d.influencer===i.name);const hasPosted=hasDels.some(d=>d.status==='Posted');if(posting==='posted'&&!hasPosted)return false;if(posting==='notposted'&&hasPosted)return false;}
+    return true;
+  });
+  const total=filtInf.length,pages=Math.ceil(total/PG)||1;
+  if(infPage>=pages) infPage=pages-1;
+  document.getElementById('inf-count').textContent=total+' influencers';
+  document.getElementById('inf-pages').textContent=`${infPage+1} / ${pages}`;
+  document.getElementById('inf-prev').disabled=infPage===0;
+  document.getElementById('inf-next').disabled=infPage>=pages-1;
+  const slice=filtInf.slice(infPage*PG,(infPage+1)*PG);
+  const tbody=document.getElementById('inf-tbody');
+  if(!slice.length){tbody.innerHTML=`<tr><td colspan="10" class="table-empty">${influencers.length?'No results — adjust filters':'Connect your sheet in Settings'}</td></tr>`;return;}
+  tbody.innerHTML=slice.map((inf,i)=>{
+    const t=getTier(inf.followers);
+    const infDels=deliverables.filter(d=>d.influencer===inf.name);
+    const dCount=infDels.length;
+    const hasPosted=infDels.some(d=>d.status==='Posted');
+    const origIdx=influencers.indexOf(inf);
+    return `<tr>
+      <td style="color:var(--text3);font-family:'DM Mono',monospace;font-size:11px">${infPage*PG+i+1}</td>
+      <td><div style="font-weight:600">${inf.name}</div>${inf.email?`<div style="font-size:11px;color:var(--text3)">${inf.email}</div>`:''}</td>
+      <td>${platBadge(inf.platform)}</td>
+      <td>${t?`<span class="tier-badge" style="background:${tierColor(t)}22;color:${tierColor(t)}">${tierLabel(t)}</span>`:'—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${fmtF(inf.followers)}</td>
+      <td style="color:var(--text2);font-size:12px">${inf.category||'—'}</td>
+      <td style="color:var(--text3);font-size:12px">${inf.connectType||'—'}</td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:${dCount?'var(--accent)':'var(--text3)'}">${dCount}</span></td>
+      <td>${hasPosted?'<span class="badge badge-posted" style="font-size:10px">● Posted</span>':dCount?'<span class="badge badge-notposted" style="font-size:10px">✕ Not Posted</span>':'<span style="color:var(--text3);font-size:11px">—</span>'}</td>
+      <td><div class="row-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openProfile(${origIdx})">View</button>
+        <button class="btn btn-secondary btn-sm" onclick="openEditInfluencer(${origIdx})">Edit</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+// ================================================================
+// DELIVERABLES TABLE
+// ================================================================
+let filtDel=[];
+function renderDeliverables() {
+  const q=(document.getElementById('f-del-q').value||'').toLowerCase();
+  const st=document.getElementById('f-del-status').value;
+  const at=document.getElementById('f-del-asset').value;
+  const mon=document.getElementById('f-del-month').value;
+  const pr=document.getElementById('f-del-product').value;
+  filtDel=deliverables.filter(d=>{
+    if(q&&!`${d.influencer} ${d.product} ${d.asset}`.toLowerCase().includes(q)) return false;
+    if(st&&d.status!==st) return false;
+    if(at&&d.asset!==at) return false;
+    if(mon&&getDelMonth(d)!==mon) return false;
+    if(pr&&d.product!==pr) return false;
+    return true;
+  });
+  const total=filtDel.length,pages=Math.ceil(total/PG)||1;
+  if(delPage>=pages) delPage=pages-1;
+  document.getElementById('del-count').textContent=total+' deliverables';
+  document.getElementById('del-pages').textContent=`${delPage+1} / ${pages}`;
+  document.getElementById('del-prev').disabled=delPage===0;
+  document.getElementById('del-next').disabled=delPage>=pages-1;
+  const slice=filtDel.slice(delPage*PG,(delPage+1)*PG);
+  const tbody=document.getElementById('del-tbody');
+  if(!slice.length){tbody.innerHTML=`<tr><td colspan="10" class="table-empty">${deliverables.length?'No results — adjust filters':'Connect your sheet in Settings'}</td></tr>`;return;}
+  tbody.innerHTML=slice.map((d,i)=>{
+    const views=getViews(d);
+    const isLive=!!d.ytViews;
+    const origIdx=deliverables.indexOf(d);
+    const postLink=d.link||d.ytLink||d.igLink||'';
+    const assetBadge=String(d.asset||'').toLowerCase().includes('youtube')?`<span class="badge badge-yt" style="font-size:10px">${d.asset}</span>`:`<span class="badge badge-ig" style="font-size:10px">${d.asset}</span>`;
+    const isIGLive = !!d.igLive;
+    const viewsCell = isLive
+      ? `<div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)">${fmtN(views)} <span style="font-size:9px;color:var(--accent);background:rgba(124,92,252,.15);padding:1px 5px;border-radius:4px">LIVE</span></div><div style="font-size:10px;color:var(--text3);margin-top:2px">▲ ${fmtN(d.ytLikes||0)} &nbsp;💬 ${fmtN(d.ytComments||0)}</div>`
+      : isIGLive
+      ? `<div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)">${fmtN(views)} <span style="font-size:9px;color:#fc5ca8;background:rgba(252,92,168,.15);padding:1px 5px;border-radius:4px">LIVE</span></div><div style="font-size:10px;color:var(--text3);margin-top:2px">▲ ${fmtN(d.igLikes||0)} &nbsp;💬 ${fmtN(d.igComments||0)}</div>`
+      : `<span style="font-family:'DM Mono',monospace;font-size:12px;color:${views?'var(--accent3)':'var(--text3)'}">${fmtN(views)}</span>`;
+    return `<tr>
+      <td style="color:var(--text3);font-family:'DM Mono',monospace;font-size:11px">${delPage*PG+i+1}</td>
+      <td><div style="font-weight:600;font-size:13px">${d.influencer||'—'}</div></td>
+      <td>${assetBadge}</td>
+      <td>${statusBadge(d.status)}</td>
+      <td style="color:var(--text2);font-size:12px">${d.product||'—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)">${fmtD(d.dateOfPosting)}</td>
+      <td>${viewsCell}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${fmtC(d.influencerCost)}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)">${fmtC(d.totalSale)}</td>
+      <td><div class="row-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openEditDeliverable(${origIdx})">Edit</button>
+        ${postLink?`<a href="${postLink}" target="_blank" class="btn btn-success btn-sm">↗ View Post</a>`:''}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+// ================================================================
+// INSTAGRAM METRICS
+// ================================================================
+function toggleIGBtn() {
+  const product = document.getElementById('f-del-product').value;
+  const btn = document.getElementById('ig-fetch-btn');
+  btn.style.opacity = product ? '1' : '0.4';
+  btn.style.pointerEvents = product ? 'auto' : 'none';
+}
+
+async function fetchIGMetrics() {
+  const product = document.getElementById('f-del-product').value;
+  if (!product) return;
+  const btn    = document.getElementById('ig-fetch-btn');
+  const status = document.getElementById('ig-fetch-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Fetching…';
+  status.textContent = 'Running Apify scraper (this takes ~30s)…';
+  status.style.color = 'var(--text3)';
+  try {
+    const res  = await fetch(`/api/instagram-sync?product=${encodeURIComponent(product)}&limit=3`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    // Merge returned metrics into local deliverables state
+    data.results.forEach(r => {
+      const match = deliverables.find(d => d.igLink === r.url || d.igLink === r.inputUrl);
+      if (match) {
+        match.igViews    = r.videoPlayCount || r.videoViewCount || match.igViews;
+        match.igLikes    = r.likesCount    || 0;
+        match.igComments = r.commentsCount || 0;
+        match.igLive     = true;
+      }
+    });
+    renderDeliverables();
+    renderDashboard();
+    status.textContent = `✓ Updated ${data.results.length} reels for "${product}"`;
+    status.style.color = 'var(--accent3)';
+  } catch (e) {
+    status.textContent = '✗ ' + e.message;
+    status.style.color = 'var(--accent2)';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📸 Fetch IG Metrics';
+  }
+}
+function renderIGMetrics() {
+  const igDels = deliverables
+    .filter(d => d.igLink && (d.igViews || d.igLikes || d.igComments))
+    .sort((a, b) => (b.igViews||0) - (a.igViews||0));
+  const section = document.getElementById('ig-metrics-section');
+  const grid    = document.getElementById('ig-metrics-grid');
+  if (!igDels.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  const anyLive = igDels.some(d => d.igLive);
+  document.getElementById('ig-metrics-live-badge').style.display = anyLive ? '' : 'none';
+  grid.innerHTML = igDels.map(d => `
+    <div class="ig-metric-card${d.igLive ? ' is-live' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">
+        <div>
+          <div style="font-weight:600;font-size:13px;line-height:1.3">${d.influencer||'—'}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${d.product||'—'} · ${fmtD(d.dateOfPosting)}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+          ${d.igLive ? '<span style="font-size:9px;color:#fc5ca8;background:rgba(252,92,168,.15);padding:1px 6px;border-radius:4px;font-family:\'DM Mono\',monospace">LIVE</span>' : ''}
+          ${d.igLink ? `<a href="${d.igLink}" target="_blank" style="font-size:10px;color:var(--accent);text-decoration:none">↗ Reel</a>` : ''}
+        </div>
+      </div>
+      <div class="ig-metric-row">
+        <div class="ig-metric-pill">
+          <div class="ig-metric-pill-val" style="color:var(--accent3)">${fmtN(d.igViews||0)}</div>
+          <div class="ig-metric-pill-lbl">Views</div>
+        </div>
+        <div class="ig-metric-pill">
+          <div class="ig-metric-pill-val">${fmtN(d.igLikes||0)}</div>
+          <div class="ig-metric-pill-lbl">Likes</div>
+        </div>
+        <div class="ig-metric-pill">
+          <div class="ig-metric-pill-val">${fmtN(d.igComments||0)}</div>
+          <div class="ig-metric-pill-lbl">Comments</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+async function fetchDashIGMetrics() {
+  const product = document.getElementById('dash-ig-product').value;
+  const month   = document.getElementById('dash-ig-month').value;
+  if (!product) { document.getElementById('dash-ig-status').textContent = '⚠ Select a product first'; return; }
+  const btn    = document.getElementById('dash-ig-btn');
+  const status = document.getElementById('dash-ig-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Fetching…';
+  status.textContent = 'Running Apify scraper (~30s)…';
+  status.style.color = 'var(--text3)';
+  try {
+    let url = `/api/instagram-sync?product=${encodeURIComponent(product)}&limit=3`;
+    if (month) url += `&month=${encodeURIComponent(month)}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    data.results.forEach(r => {
+      const match = deliverables.find(d => d.igLink === r.url || d.igLink === r.inputUrl);
+      if (match) {
+        match.igViews    = r.videoPlayCount || r.videoViewCount || match.igViews;
+        match.igLikes    = r.likesCount    || 0;
+        match.igComments = r.commentsCount || 0;
+        match.igLive     = true;
+      }
+    });
+    renderDashboard();
+    renderIGMetrics();
+    renderDeliverables();
+    status.textContent = `✓ Updated ${data.results.length} reels for "${product}"${month ? ' · '+month : ''}`;
+    status.style.color = 'var(--accent3)';
+  } catch (e) {
+    status.textContent = '✗ ' + e.message;
+    status.style.color = 'var(--accent2)';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '◈ Fetch IG Metrics';
+  }
+}
+// ================================================================
+// REQUESTS
+// ================================================================
+function renderRequests() {
+  const sf=document.getElementById('rq-filter-status')?document.getElementById('rq-filter-status').value:'';
+  let filtered=sf?requests.filter(r=>(r.status||'Pending')===sf):requests;
+  const tbody=document.getElementById('req-tbody');
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="9" class="table-empty">${requests.length?'No results':'No requests yet — submit one above'}</td></tr>`;return;}
+  tbody.innerHTML=filtered.map((r,i)=>`<tr>
+    <td style="color:var(--text3);font-family:'DM Mono',monospace;font-size:11px">${i+1}</td>
+    <td style="font-weight:600;font-size:13px">${r.requestedBy||'—'}</td>
+    <td><div style="font-weight:600">${r.creatorName||'—'}</div>${r.profileLink?`<a href="${r.profileLink}" target="_blank" style="font-size:11px;color:var(--accent)">↗ profile</a>`:''}</td>
+    <td>${platBadge(r.platform)}</td>
+    <td style="color:var(--text2);font-size:12px">${r.requestType||'—'}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:12px">${r.followerEst||'—'}</td>
+    <td>${reqStatusBadge(r.status||'Pending')}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)">${fmtD(r.timestamp)}</td>
+    <td style="color:var(--text2);font-size:12px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.notes||'—'}</td>
+  </tr>`).join('');
+}
+function onRqCreatorInput() {
+  const name=document.getElementById('rq-creator').value.trim();
+  const inf=influencers.find(i=>i.name.toLowerCase()===name.toLowerCase());
+  if(!inf) return;
+  const plt=String(inf.platform||'').toLowerCase();
+  const sel=document.getElementById('rq-platform');
+  if(plt.includes('youtube')&&plt.includes('instagram')) sel.value='Both';
+  else if(plt.includes('youtube')) sel.value='YouTube';
+  else if(plt.includes('instagram')) sel.value='Instagram';
+  if(!document.getElementById('rq-link').value&&inf.link) document.getElementById('rq-link').value=inf.link;
+  if(!document.getElementById('rq-followers').value&&inf.followers) document.getElementById('rq-followers').value=fmtF(inf.followers);
+}
+function onNdProductChange() {
+  const product=document.getElementById('nd-product').value;
+  if(!product){document.getElementById('nd-sku').value='';return;}
+  const match=deliverables.filter(d=>d.product===product&&d.skuIds).sort((a,b)=>(getDelMonth(b)||'').localeCompare(getDelMonth(a)||''))[0];
+  document.getElementById('nd-sku').value=match?match.skuIds:'';
+}
+function onRqProductChange() {
+  const product=document.getElementById('rq-product').value;
+  if(!product){document.getElementById('rq-sku').value='';return;}
+  const match=deliverables.filter(d=>d.product===product&&d.skuIds).sort((a,b)=>(getDelMonth(b)||'').localeCompare(getDelMonth(a)||''))[0];
+  document.getElementById('rq-sku').value=match?match.skuIds:'';
+}
+async function submitRequest() {
+  const by=document.getElementById('rq-by').value.trim();
+  const creator=document.getElementById('rq-creator').value.trim();
+  if(!by||!creator){showToast('⚠ Your name and creator name are required',true);return;}
+  const data={requestedBy:by,creatorName:creator,platform:document.getElementById('rq-platform').value,requestType:document.getElementById('rq-type').value,product:document.getElementById('rq-product').value,skuId:document.getElementById('rq-sku').value,followerEst:document.getElementById('rq-followers').value,profileLink:document.getElementById('rq-link').value,notes:document.getElementById('rq-notes').value,status:'Pending'};
+  await withSpinner('rq-spinner',async()=>{
+    await apiPost({action:'addRequest',data});
+    showToast('✓ Request submitted to Google Sheet');
+    ['rq-by','rq-creator','rq-followers','rq-link','rq-notes','rq-sku'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('rq-product').value='';
+    await syncData(false);renderRequests();
+  });
+}
+// ================================================================
+// ANALYTICS COMPARE TOGGLE
+// ================================================================
+let anCompareActive=false;
+function toggleAnCompare() {
+  anCompareActive=!anCompareActive;
+  const btn=document.getElementById('an-compare-toggle');
+  document.getElementById('an-period-b-block').style.display=anCompareActive?'flex':'none';
+  btn.classList.toggle('active',anCompareActive);
+  document.getElementById('an-compare-icon').textContent=anCompareActive?'⊖':'⊕';
+  btn.childNodes[1].textContent=anCompareActive?' Hide Compare':' Compare Period';
+  renderAnalytics();
+}
+function getAnPeriodDels(fromId,toId) {
+  const from=document.getElementById(fromId)?document.getElementById(fromId).value:'';
+  const to=document.getElementById(toId)?document.getElementById(toId).value:'';
+  const product=document.getElementById('an-product')?document.getElementById('an-product').value:'';
+  let base=product?deliverables.filter(d=>d.product===product):deliverables;
+  if(!from&&!to) return base;
+  const allMonths=[...new Set(base.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>m.length>4))].sort();
+  const start=from||allMonths[0]; const end=to||allMonths[allMonths.length-1];
+  return base.filter(d=>{const m=getDelMonth(d);return m&&m>=start&&m<=end;});
+}
+function anPeriodLabel(fromId,toId) {
+  const from=document.getElementById(fromId)?document.getElementById(fromId).value:'';
+  const to=document.getElementById(toId)?document.getElementById(toId).value:'';
+  if(!from&&!to) return 'All Time';
+  if(!to&&from) return from+' →';
+  if(!from&&to) return '← '+to;
+  return from===to?from:`${from} → ${to}`;
+}
+function calcNewRepeat(periodDels,fromId,toId) {
+  const from=document.getElementById(fromId)?document.getElementById(fromId).value:'';
+  const allMonths=[...new Set(deliverables.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>m.length>4))].sort();
+  const periodStart=from||(allMonths[0]||'');
+  function monthToDate(m){if(!m)return null;const d=new Date(m);return isNaN(d)?null:d;}
+  const periodStartDate=monthToDate(periodStart);
+  const allMonthsByInf={};
+  deliverables.forEach(d=>{const m=getDelMonth(d);if(d.influencer&&m&&m.length>4){if(!allMonthsByInf[d.influencer])allMonthsByInf[d.influencer]=[];allMonthsByInf[d.influencer].push(m);}});
+  const activeInPeriod=[...new Set(periodDels.map(d=>d.influencer).filter(Boolean))];
+  const newInfs=[],repeatInfs=[];
+  activeInPeriod.forEach(name=>{
+    const history=(allMonthsByInf[name]||[]).sort();
+    const priorMonths=history.filter(m=>m<periodStart);
+    if(priorMonths.length===0){newInfs.push(name);}
+    else{
+      const lastPriorDate=monthToDate(priorMonths[priorMonths.length-1]);
+      if(periodStartDate&&lastPriorDate){
+        const gap=(periodStartDate.getFullYear()-lastPriorDate.getFullYear())*12+(periodStartDate.getMonth()-lastPriorDate.getMonth());
+        if(gap>4) newInfs.push(name); else repeatInfs.push(name);
+      } else repeatInfs.push(name);
+    }
+  });
+  return{newInfs,repeatInfs,activeInPeriod};
+}
+function anDelta(elId,valA,valB,isCurrency=false,isPct=false) {
+  const el=document.getElementById(elId);if(!el)return;
+  if(!anCompareActive){el.innerHTML='';return;}
+  const diff=valA-valB;if(valB===0&&diff===0){el.innerHTML='';return;}
+  const pct=valB>0?((diff/valB)*100).toFixed(1):null;
+  const cls=diff>0?'delta-up':diff<0?'delta-down':'delta-flat';
+  const arrow=diff>0?'↑':diff<0?'↓':'→';
+  const absStr=isCurrency?fmtC(Math.abs(diff)):isPct?Math.abs(diff).toFixed(1)+'%':fmtN(Math.abs(diff));
+  const pctStr=pct!==null&&!isPct?` (${diff>0?'+':''}${pct}%)`:'';
+  const bStr=isCurrency?fmtC(valB):isPct?valB.toFixed(1)+'%':fmtN(valB);
+  el.innerHTML=`<span class="${cls}">${arrow} ${absStr}${pctStr}</span> <span class="period-b-val">vs ${bStr}</span>`;
+}
+// ================================================================
+// HELPER: get Posted deliverables filtered by monthOfPosting only
+// ================================================================
+function getPostedByPostingMonth(fromVal, toVal, productVal) {
+  let base = deliverables.filter(d => d.status === 'Posted');
+  if (productVal) base = base.filter(d => d.product === productVal);
+  if (!fromVal && !toVal) return base;
+  const pm = [...new Set(base.map(d => d.monthOfPosting).filter(Boolean).filter(m => m.length > 4))].sort();
+  const start = fromVal || pm[0] || '';
+  const end = toVal || pm[pm.length - 1] || '';
+  return base.filter(d => {
+    const m = d.monthOfPosting;
+    return m && m.length > 4 && m >= start && m <= end;
+  });
+}
+// ================================================================
+// ANALYTICS
+// ================================================================
+function renderAnalytics() {
+  const pal=['rgba(124,92,252,.8)','rgba(252,92,168,.8)','rgba(92,252,180,.8)','rgba(92,180,252,.8)','rgba(252,228,92,.8)','rgba(252,140,92,.8)'];
+  const palB=['rgba(124,92,252,.4)','rgba(252,92,168,.4)','rgba(92,252,180,.4)','rgba(92,180,252,.4)','rgba(252,228,92,.4)','rgba(252,140,92,.4)'];
+  const delsA=getAnPeriodDels('an-a-from','an-a-to');
+  const delsB=anCompareActive?getAnPeriodDels('an-b-from','an-b-to'):null;
+  const lblA=anPeriodLabel('an-a-from','an-a-to');
+  const lblB=anCompareActive?anPeriodLabel('an-b-from','an-b-to'):'';
+  // Views (Period): only Posted deliverables, filtered by monthOfPosting
+  const _anFrom=(document.getElementById('an-a-from')||{}).value||'';
+  const _anTo=(document.getElementById('an-a-to')||{}).value||'';
+  const _anProd=(document.getElementById('an-product')||{}).value||'';
+  const postedPeriodDelsA = getPostedByPostingMonth(_anFrom, _anTo, _anProd);
+  const _anFromB=(document.getElementById('an-b-from')||{}).value||'';
+  const _anToB=(document.getElementById('an-b-to')||{}).value||'';
+  const postedPeriodDelsB = anCompareActive ? getPostedByPostingMonth(_anFromB, _anToB, _anProd) : null;
+  const tvA=delsA.reduce((s,d)=>s+getViews(d),0);
+  const tcA=delsA.reduce((s,d)=>s+(d.influencerCost||0),0);
+  const toA=delsA.reduce((s,d)=>s+(d.orders||0),0);
+  const cpvA=tvA&&tcA?(tcA/tvA):0;
+  document.getElementById('an-views').textContent=fmtN(tvA)||'—';
+  document.getElementById('an-cost').textContent=fmtC(tcA)||'—';
+  document.getElementById('an-orders').textContent=toA||'—';
+  document.getElementById('an-cpv').textContent=cpvA?'₹'+cpvA.toFixed(2):'—';
+  document.getElementById('an-views-sub').textContent=lblA;
+  document.getElementById('an-cost-sub').textContent=lblA;
+  document.getElementById('an-orders-sub').textContent=lblA;
+  document.getElementById('an-cpv-sub').textContent=lblA;
+  // Deliverables status breakdown
+  const delsCountA   = delsA.length;
+  const postedA      = delsA.filter(d=>d.status==='Posted').length;
+  const inProgressA  = delsA.filter(d=>d.status==='In progress').length;
+  const notPostedA   = delsA.filter(d=>d.status==='Did not post').length;
+  document.getElementById('an-dels').textContent       = delsCountA;
+  document.getElementById('an-posted').textContent     = postedA;
+  document.getElementById('an-inprogress').textContent = inProgressA;
+  document.getElementById('an-notposted').textContent  = notPostedA;
+  document.getElementById('an-dels-sub').textContent       = lblA;
+  document.getElementById('an-posted-sub').textContent     = lblA;
+  document.getElementById('an-inprogress-sub').textContent = lblA;
+  document.getElementById('an-notposted-sub').textContent  = lblA;
+  if(delsB){
+    const tvB=delsB.reduce((s,d)=>s+getViews(d),0);
+    const tcB=delsB.reduce((s,d)=>s+(d.influencerCost||0),0);
+    const toB=delsB.reduce((s,d)=>s+(d.orders||0),0);
+    const cpvB=tvB&&tcB?(tcB/tvB):0;
+    const delsCountB  = delsB.length;
+    const postedB     = delsB.filter(d=>d.status==='Posted').length;
+    const inProgressB = delsB.filter(d=>d.status==='In progress').length;
+    const notPostedB  = delsB.filter(d=>d.status==='Did not post').length;
+    anDelta('an-sc-views',tvA,tvB);anDelta('an-sc-cost',tcA,tcB,true);anDelta('an-sc-orders',toA,toB);anDelta('an-sc-cpv',cpvA,cpvB,true);
+    anDelta('an-sc-dels',delsCountA,delsCountB);anDelta('an-sc-posted',postedA,postedB);anDelta('an-sc-inprogress',inProgressA,inProgressB);anDelta('an-sc-notposted',notPostedA,notPostedB);
+  } else {['an-sc-views','an-sc-cost','an-sc-orders','an-sc-cpv','an-sc-dels','an-sc-posted','an-sc-inprogress','an-sc-notposted'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});}
+  // NR classification: use postedPeriodDelsA so the entire NR section is driven by
+  // Posted deliverables filtered by monthOfPosting (not scheduledMonth)
+  const nrA=calcNewRepeat(postedPeriodDelsA,'an-a-from','an-a-to');
+  const nrB=postedPeriodDelsB?calcNewRepeat(postedPeriodDelsB,'an-b-from','an-b-to'):null;
+  const newCountA=nrA.newInfs.length,repeatCountA=nrA.repeatInfs.length,totalActive=nrA.activeInPeriod.length;
+  const newRateA=totalActive>0?((newCountA/totalActive)*100):0;
+  const newSet=new Set(nrA.newInfs),repeatSet=new Set(nrA.repeatInfs);
+  const newDels=postedPeriodDelsA.filter(d=>newSet.has(d.influencer));
+  const repeatDels=postedPeriodDelsA.filter(d=>repeatSet.has(d.influencer));
+  const avgViewsNew=newDels.length?Math.round(newDels.reduce((s,d)=>s+getViews(d),0)/newDels.length):0;
+  const avgViewsRepeat=repeatDels.length?Math.round(repeatDels.reduce((s,d)=>s+getViews(d),0)/repeatDels.length):0;
+  document.getElementById('an-new').textContent=newCountA||'—';
+  document.getElementById('an-repeat').textContent=repeatCountA||'—';
+  document.getElementById('an-newrate').textContent=totalActive?newRateA.toFixed(1)+'%':'—';
+  document.getElementById('an-newviews').textContent=avgViewsNew?fmtN(avgViewsNew):'—';
+  document.getElementById('an-nr-title').textContent=`New vs Repeat Influencers · ${lblA}`;
+  document.getElementById('an-nr-chart-title').textContent=anCompareActive?`New vs Repeat · A vs B`:`New vs Repeat Split · ${lblA}`;
+  if(nrB){
+    const nrRateB=nrB.activeInPeriod.length>0?(nrB.newInfs.length/nrB.activeInPeriod.length)*100:0;
+    const newDelsBp=postedPeriodDelsB.filter(d=>new Set(nrB.newInfs).has(d.influencer));
+    const avgVNewB=newDelsBp.length?Math.round(newDelsBp.reduce((s,d)=>s+getViews(d),0)/newDelsBp.length):0;
+    anDelta('an-sc-new',newCountA,nrB.newInfs.length);anDelta('an-sc-repeat',repeatCountA,nrB.repeatInfs.length);anDelta('an-sc-newrate',newRateA,nrRateB,false,true);anDelta('an-sc-newviews',avgViewsNew,avgVNewB);
+  } else {['an-sc-new','an-sc-repeat','an-sc-newrate','an-sc-newviews'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});}
+  if(anCompareActive&&nrB){
+    mkChart('ch-newrepeat','bar',{labels:['New','Repeat'],datasets:[{label:lblA,data:[nrA.newInfs.length,nrA.repeatInfs.length],backgroundColor:['rgba(92,252,180,.8)','rgba(124,92,252,.8)'],borderRadius:4},{label:lblB,data:[nrB.newInfs.length,nrB.repeatInfs.length],backgroundColor:['rgba(92,252,180,.35)','rgba(124,92,252,.35)'],borderRadius:4}]});
+  } else {
+    mkChart('ch-newrepeat','doughnut',{labels:['New','Repeat'],datasets:[{data:[newCountA,repeatCountA],backgroundColor:['rgba(92,252,180,.85)','rgba(124,92,252,.85)'],borderColor:'var(--bg)',borderWidth:3}]});
+  }
+  if(anCompareActive&&nrB){
+    const newDelsBt=postedPeriodDelsB.filter(d=>new Set(nrB.newInfs).has(d.influencer));
+    const repDelsBt=postedPeriodDelsB.filter(d=>new Set(nrB.repeatInfs).has(d.influencer));
+    const avgVNewB2=newDelsBt.length?Math.round(newDelsBt.reduce((s,d)=>s+getViews(d),0)/newDelsBt.length):0;
+    const avgVRepB2=repDelsBt.length?Math.round(repDelsBt.reduce((s,d)=>s+getViews(d),0)/repDelsBt.length):0;
+    mkChart('ch-nr-views','bar',{labels:['New','Repeat'],datasets:[{label:lblA,data:[avgViewsNew,avgViewsRepeat],backgroundColor:['rgba(92,252,180,.8)','rgba(124,92,252,.8)'],borderRadius:4},{label:lblB,data:[avgVNewB2,avgVRepB2],backgroundColor:['rgba(92,252,180,.35)','rgba(124,92,252,.35)'],borderRadius:4}]});
+  } else {
+    mkChart('ch-nr-views','bar',{labels:['New','Repeat'],datasets:[{label:'Avg Views',data:[avgViewsNew,avgViewsRepeat],backgroundColor:['rgba(92,252,180,.8)','rgba(124,92,252,.8)'],borderRadius:6}]});
+  }
+  // NR breakdown table — FIX: views use monthOfPosting + Posted status only
+  const allMonthsByInfLocal={};
+  deliverables.forEach(d=>{const m=getDelMonth(d);if(d.influencer&&m&&m.length>4){if(!allMonthsByInfLocal[d.influencer])allMonthsByInfLocal[d.influencer]=[];allMonthsByInfLocal[d.influencer].push(m);}});
+  const anPeriodStart=(document.getElementById('an-a-from')||{}).value||'';
+  const nrRows=[
+    ...nrA.newInfs.map(name=>{const hist=(allMonthsByInfLocal[name]||[]).sort();const prior=hist.filter(m=>m<anPeriodStart);return{name,type:'New',subtype:prior.length===0?'brand-new':'lapsed'};}),
+    ...nrA.repeatInfs.map(name=>({name,type:'Repeat',subtype:'repeat'}))
+  ].sort((a,b)=>a.name.localeCompare(b.name));
+  const nrTbody=document.getElementById('an-nr-tbody');
+  if(!nrRows.length){nrTbody.innerHTML='<tr><td colspan="8" class="table-empty">No data for this period</td></tr>';}
+  else{nrTbody.innerHTML=nrRows.map(row=>{
+    const inf=influencers.find(i=>i.name===row.name)||{};
+    // Everything in NR table driven by Posted deliverables filtered by monthOfPosting
+    const infDels=postedPeriodDelsA.filter(d=>d.influencer===row.name);
+    const views=infDels.reduce((s,d)=>s+getViews(d),0);
+    const cost=infDels.reduce((s,d)=>s+(d.influencerCost||0),0);
+    const t=getTier(inf.followers);
+    const allInfDels=deliverables.filter(d=>d.influencer===row.name);
+    const months=allInfDels.map(d=>getDelMonth(d)).filter(Boolean).sort();
+    const firstEver=months[0]||'—';
+    const badgeLabel=row.subtype==='brand-new'?'★ New':row.subtype==='lapsed'?'↺ Lapsed → New':'↻ Repeat';
+    const badgeBg=row.subtype==='repeat'?'rgba(124,92,252,.15)':row.subtype==='lapsed'?'rgba(252,160,92,.15)':'rgba(92,252,180,.15)';
+    const badgeClr=row.subtype==='repeat'?'var(--accent)':row.subtype==='lapsed'?'var(--macro2)':'var(--accent3)';
+    return `<tr>
+      <td style="font-weight:600">${row.name}</td>
+      <td><span class="badge" style="background:${badgeBg};color:${badgeClr};font-size:10px">${badgeLabel}</span></td>
+      <td style="color:var(--text2);font-size:12px">${inf.category||'—'}</td>
+      <td>${t?`<span class="tier-badge" style="background:${tierColor(t)}22;color:${tierColor(t)}">${tierLabel(t)}</span>`:'—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent)">${infDels.length}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)">${fmtN(views)||'—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${fmtC(cost)||'—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)">${firstEver}</td>
+    </tr>`;
+  }).join('');}
+  document.getElementById('an-av-title').textContent=anCompareActive?`Views by Asset Type · A vs B`:`Views by Asset Type · ${lblA}`;
+  document.getElementById('an-ac-title').textContent=anCompareActive?`Cost by Asset Type · A vs B`:`Cost by Asset Type · ${lblA}`;
+  document.getElementById('an-topinf-title').textContent=anCompareActive?`Top 10 Views · A vs B`:`Top 10 Influencers by Views · ${lblA}`;
+  const assetVA={},assetCA={};
+  delsA.forEach(d=>{const a=d.asset||'Other';assetVA[a]=(assetVA[a]||0)+getViews(d);assetCA[a]=(assetCA[a]||0)+(d.influencerCost||0);});
+  const ak=[...new Set([...Object.keys(assetVA),...(delsB?Object.keys(delsB.reduce((o,d)=>{o[d.asset||'Other']=1;return o;},{})):[]) ])];
+  if(anCompareActive&&delsB){
+    const assetVB={},assetCB={};
+    delsB.forEach(d=>{const a=d.asset||'Other';assetVB[a]=(assetVB[a]||0)+getViews(d);assetCB[a]=(assetCB[a]||0)+(d.influencerCost||0);});
+    mkChart('ch-av','bar',{labels:ak,datasets:[{label:lblA,data:ak.map(k=>assetVA[k]||0),backgroundColor:pal,borderRadius:4},{label:lblB,data:ak.map(k=>assetVB[k]||0),backgroundColor:palB,borderRadius:4}]},{indexAxis:'y'});
+    mkChart('ch-ac','bar',{labels:ak,datasets:[{label:lblA,data:ak.map(k=>assetCA[k]||0),backgroundColor:pal,borderRadius:4},{label:lblB,data:ak.map(k=>assetCB[k]||0),backgroundColor:palB,borderRadius:4}]},{indexAxis:'y'});
+  } else {
+    mkChart('ch-av','doughnut',{labels:ak,datasets:[{data:ak.map(k=>assetVA[k]||0),backgroundColor:pal,borderColor:'var(--bg)',borderWidth:2}]});
+    mkChart('ch-ac','doughnut',{labels:ak,datasets:[{data:ak.map(k=>assetCA[k]||0),backgroundColor:pal,borderColor:'var(--bg)',borderWidth:2}]});
+  }
+  const ivMapA={};
+  delsA.forEach(d=>{const v=getViews(d);if(d.influencer&&v)ivMapA[d.influencer]=(ivMapA[d.influencer]||0)+v;});
+  const top10A=Object.entries(ivMapA).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  if(anCompareActive&&delsB){
+    const ivMapB={};
+    delsB.forEach(d=>{const v=getViews(d);if(d.influencer&&v)ivMapB[d.influencer]=(ivMapB[d.influencer]||0)+v;});
+    const top10B=Object.entries(ivMapB).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    const allNames=[...new Set([...top10A.map(p=>p[0]),...top10B.map(p=>p[0])])];
+    mkChart('ch-topinf','bar',{labels:allNames,datasets:[{label:lblA,data:allNames.map(n=>ivMapA[n]||0),backgroundColor:'rgba(124,92,252,.75)',borderRadius:4},{label:lblB,data:allNames.map(n=>ivMapB[n]||0),backgroundColor:'rgba(252,92,125,.5)',borderRadius:4}]});
+  } else {
+    mkChart('ch-topinf','bar',{labels:top10A.map(p=>p[0]),datasets:[{label:'Views',data:top10A.map(p=>p[1]),backgroundColor:'rgba(124,92,252,.75)',borderRadius:4}]});
+  }
+  const pMap={};delsA.forEach(d=>{if(d.product)pMap[d.product]=(pMap[d.product]||0)+1;});
+  const topP=Object.entries(pMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  mkChart('ch-prod','bar',{labels:topP.map(p=>p[0]),datasets:[{label:'Deliverables',data:topP.map(p=>p[1]),backgroundColor:'rgba(252,92,168,.75)',borderRadius:4}]},{indexAxis:'y'});
+  const tMap={};influencers.forEach(i=>{const t=getTier(i.followers)||'Unknown';tMap[t]=(tMap[t]||0)+1;});
+  const tk=['NANO','MICRO','MACRO1','MACRO2','MACRO3','MACRO4'].filter(t=>tMap[t]);
+  mkChart('ch-tier','doughnut',{labels:tk.map(tierLabel),datasets:[{data:tk.map(t=>tMap[t]),backgroundColor:tk.map((t,i)=>pal[i]||'rgba(100,100,100,.5)'),borderColor:'var(--bg)',borderWidth:2}]});
+}
+// ================================================================
+// CHART HELPER
+// ================================================================
+function mkChart(id,type,data,extra={}) {
+  if(charts[id]) charts[id].destroy();
+  const ctx=document.getElementById(id);if(!ctx)return;
+  charts[id]=new Chart(ctx,{type,data,options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:'#9896b0',font:{size:11,family:'DM Mono'},boxWidth:10}}},scales:type==='bar'||type==='line'?{x:{ticks:{color:'#9896b0',font:{size:10}},grid:{color:'rgba(42,42,66,.5)'}},y:{ticks:{color:'#9896b0',font:{size:10}},grid:{color:'rgba(42,42,66,.5)'}}}:undefined,...extra}});
+}
+// ================================================================
+// PROFILE PANEL
+// ================================================================
+function openProfile(idx) {
+  const inf=influencers[idx];if(!inf)return;
+  document.getElementById('panel-name').textContent=inf.name;
+  const t=getTier(inf.followers);
+  document.getElementById('panel-badges').innerHTML=platBadge(inf.platform)+(t?` <span class="tier-badge" style="background:${tierColor(t)}22;color:${tierColor(t)}">${tierLabel(t)}</span>`:'');
+  const dels=deliverables.filter(d=>d.influencer===inf.name);
+  const tv=dels.reduce((s,d)=>s+getViews(d),0);
+  const tc=dels.reduce((s,d)=>s+(d.influencerCost||0),0);
+  const ts=dels.reduce((s,d)=>s+(d.totalSale||0),0);
+  const posted=dels.filter(d=>d.status==='Posted');
+  let html=`<div class="info-grid">
+    <div class="info-item"><div class="info-item-label">Followers</div><div class="info-item-value">${fmtF(inf.followers)}</div></div>
+    <div class="info-item"><div class="info-item-label">Category</div><div class="info-item-value">${inf.category||'—'}</div></div>
+    <div class="info-item"><div class="info-item-label">Connect</div><div class="info-item-value">${inf.connectType||'—'}</div></div>
+    <div class="info-item"><div class="info-item-label">State</div><div class="info-item-value">${inf.state||'—'}</div></div>
+    <div class="info-item"><div class="info-item-label">Language</div><div class="info-item-value">${inf.language||'—'}</div></div>
+    <div class="info-item"><div class="info-item-label">Phone</div><div class="info-item-value">${inf.phone||'—'}</div></div>
+    <div class="info-item" style="grid-column:1/-1"><div class="info-item-label">Email</div><div class="info-item-value" style="font-size:12px">${inf.email||'—'}</div></div>
+    ${inf.discountCode?`<div class="info-item"><div class="info-item-label">Discount Code</div><div class="info-item-value">${inf.discountCode}</div></div>`:''}
+    ${inf.affiliateId?`<div class="info-item"><div class="info-item-label">Affiliate ID</div><div class="info-item-value">${inf.affiliateId}</div></div>`:''}
+  </div>
+  ${inf.link?`<a href="${inf.link}" target="_blank" class="btn btn-secondary" style="width:100%;justify-content:center;margin-bottom:14px">↗ Open Profile</a>`:''}
+  <div class="section-title">Performance</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+    <div class="info-item"><div class="info-item-label">Deliverables</div><div class="info-item-value" style="color:var(--accent)">${dels.length}</div></div>
+    <div class="info-item"><div class="info-item-label">Posted</div><div class="info-item-value" style="color:var(--accent3)">${posted.length}</div></div>
+    <div class="info-item"><div class="info-item-label">Total Views</div><div class="info-item-value" style="color:var(--accent3)">${fmtN(tv)}</div></div>
+    <div class="info-item"><div class="info-item-label">Total Cost</div><div class="info-item-value">${fmtC(tc)}</div></div>
+    <div class="info-item"><div class="info-item-label">Total Sales</div><div class="info-item-value" style="color:var(--accent3)">${fmtC(ts)}</div></div>
+    <div class="info-item"><div class="info-item-label">CPV</div><div class="info-item-value">${tv&&tc?'₹'+(tc/tv).toFixed(2):'—'}</div></div>
+  </div>`;
+  const chartDels=dels.filter(d=>d.dateOfPosting&&(getViews(d))>0).sort((a,b)=>new Date(a.dateOfPosting)-new Date(b.dateOfPosting));
+  if(chartDels.length>1) html+=`<div class="section-title">Views Over Time</div><div class="chart-area"><canvas id="panel-chart"></canvas></div>`;
+  html+=`<div class="section-title">All Deliverables (${dels.length})</div>
+  <div class="deliverable-list">${dels.length?dels.map(d=>{
+    const v=getViews(d);
+    const postLink=d.link||d.ytLink||d.igLink||'';
+    return `<div class="deliverable-card">
+      <div class="del-header">
+        <div><div style="font-weight:600;font-size:13px">${d.product||'—'} · <span style="color:var(--text2);font-weight:400">${d.asset}</span></div></div>
+        <div style="text-align:right">${statusBadge(d.status)}<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-top:4px">${fmtD(d.dateOfPosting)}</div></div>
+      </div>
+      ${postLink?`<a href="${postLink}" target="_blank" class="post-link-btn">↗ View Post</a>`:''}
+      <div class="del-metrics" style="margin-top:8px">
+        ${v?`<div class="del-metric"><div class="del-metric-val" style="color:var(--accent3)">${fmtN(v)}</div><div class="del-metric-lbl">Views</div></div>`:''}
+        ${d.influencerCost?`<div class="del-metric"><div class="del-metric-val">${fmtC(d.influencerCost)}</div><div class="del-metric-lbl">Cost</div></div>`:''}
+        ${d.totalSale?`<div class="del-metric"><div class="del-metric-val" style="color:var(--accent3)">${fmtC(d.totalSale)}</div><div class="del-metric-lbl">Sales</div></div>`:''}
+        ${d.orders?`<div class="del-metric"><div class="del-metric-val">${d.orders}</div><div class="del-metric-lbl">Orders</div></div>`:''}
+      </div>
+      ${d.comments?`<div style="margin-top:8px;font-size:11px;color:var(--text3);line-height:1.5">${d.comments}</div>`:''}
+    </div>`;
+  }).join(''):'<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px">No deliverables yet</div>'}</div>`;
+  document.getElementById('panel-body').innerHTML=html;
+  document.getElementById('profile-panel').classList.add('open');
+  document.getElementById('panel-overlay').classList.add('open');
+  setTimeout(()=>{
+    const ctx=document.getElementById('panel-chart');
+    if(ctx&&chartDels.length>1){
+      new Chart(ctx,{type:'line',data:{labels:chartDels.map(d=>fmtD(d.dateOfPosting)),datasets:[{label:'Views',data:chartDels.map(d=>getViews(d)),borderColor:'var(--accent3)',backgroundColor:'rgba(92,252,180,.1)',fill:true,tension:.4,pointBackgroundColor:'var(--accent3)',pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#9896b0',font:{size:9}}},y:{ticks:{color:'#9896b0',font:{size:9}},grid:{color:'rgba(42,42,66,.5)'}}}}});
+    }
+  },60);
+}
+function closePanel(){document.getElementById('profile-panel').classList.remove('open');document.getElementById('panel-overlay').classList.remove('open');}
+// ================================================================
+// MODALS
+// ================================================================
+function openModal(id){document.getElementById('modal-'+id).classList.add('open');}
+function closeModal(id){document.getElementById('modal-'+id).classList.remove('open');}
+document.querySelectorAll('.modal-backdrop').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+async function submitAddInfluencer() {
+  const name=document.getElementById('ni-name').value.trim();
+  if(!name){showToast('⚠ Name is required',true);return;}
+  const data={name,platform:document.getElementById('ni-platform').value,category:document.getElementById('ni-category').value,link:document.getElementById('ni-link').value,followers:document.getElementById('ni-followers').value,connectType:document.getElementById('ni-connect').value,state:document.getElementById('ni-state').value,language:document.getElementById('ni-language').value,email:document.getElementById('ni-email').value,phone:document.getElementById('ni-phone').value,affiliateId:document.getElementById('ni-affiliate').value,discountCode:document.getElementById('ni-discount').value};
+  await withSpinner('ni-spinner',async()=>{await apiPost({action:'addInfluencer',data});showToast('✓ Influencer added to sheet');closeModal('add-influencer');await syncData(false);});
+}
+function openEditInfluencer(idx) {
+  const inf=influencers[idx];
+  document.getElementById('ei-orig-name').value=inf.name;document.getElementById('ei-name').value=inf.name;document.getElementById('ei-platform').value=inf.platform||'Instagram';document.getElementById('ei-category').value=inf.category||'';document.getElementById('ei-link').value=inf.link||'';document.getElementById('ei-followers').value=inf.followers||'';document.getElementById('ei-connect').value=inf.connectType||'Direct';document.getElementById('ei-state').value=inf.state||'';document.getElementById('ei-language').value=inf.language||'';document.getElementById('ei-email').value=inf.email||'';document.getElementById('ei-phone').value=inf.phone||'';document.getElementById('ei-affiliate').value=inf.affiliateId||'';document.getElementById('ei-discount').value=inf.discountCode||'';
+  openModal('edit-influencer');
+}
+async function submitEditInfluencer() {
+  const data={name:document.getElementById('ei-name').value.trim(),platform:document.getElementById('ei-platform').value,category:document.getElementById('ei-category').value,link:document.getElementById('ei-link').value,followers:document.getElementById('ei-followers').value,connectType:document.getElementById('ei-connect').value,state:document.getElementById('ei-state').value,language:document.getElementById('ei-language').value,email:document.getElementById('ei-email').value,phone:document.getElementById('ei-phone').value,affiliateId:document.getElementById('ei-affiliate').value,discountCode:document.getElementById('ei-discount').value};
+  await withSpinner('ei-spinner',async()=>{await apiPost({action:'updateInfluencer',data});showToast('✓ Updated in sheet');closeModal('edit-influencer');await syncData(false);});
+}
+async function submitAddDeliverable() {
+  const influencer=document.getElementById('nd-influencer').value.trim();
+  if(!influencer){showToast('⚠ Influencer name required',true);return;}
+  const data={influencer,asset:document.getElementById('nd-asset').value,status:document.getElementById('nd-status').value,product:document.getElementById('nd-product').value,skuIds:document.getElementById('nd-sku').value,scheduledDate:document.getElementById('nd-sched').value,dateOfPosting:document.getElementById('nd-posted').value,link:document.getElementById('nd-link').value,influencerCost:document.getElementById('nd-cost').value,cogs:document.getElementById('nd-cogs').value,totalSale:document.getElementById('nd-sales').value,orders:document.getElementById('nd-orders').value,comments:document.getElementById('nd-comments').value};
+  await withSpinner('nd-spinner',async()=>{await apiPost({action:'addDeliverable',data});showToast('✓ Deliverable added to sheet');closeModal('add-deliverable');await syncData(false);});
+}
+function openEditDeliverable(idx) {
+  const d=deliverables[idx];
+  document.getElementById('ed-row').value=d._row;document.getElementById('ed-influencer').value=d.influencer;document.getElementById('ed-status').value=d.status||'In progress';document.getElementById('ed-posted').value=d.dateOfPosting||'';document.getElementById('ed-link').value=d.link||d.ytLink||d.igLink||'';document.getElementById('ed-views').value=d.manualViews||0;document.getElementById('ed-igviews').value=d.igViews||0;document.getElementById('ed-cost').value=d.influencerCost||0;document.getElementById('ed-sales').value=d.totalSale||0;document.getElementById('ed-orders').value=d.orders||0;document.getElementById('ed-comments').value=d.comments||'';
+  openModal('edit-deliverable');
+}
+async function submitEditDeliverable() {
+  const data={_row:parseInt(document.getElementById('ed-row').value),status:document.getElementById('ed-status').value,dateOfPosting:document.getElementById('ed-posted').value,link:document.getElementById('ed-link').value,manualViews:parseFloat(document.getElementById('ed-views').value)||0,igViews:parseFloat(document.getElementById('ed-igviews').value)||0,influencerCost:parseFloat(document.getElementById('ed-cost').value)||0,totalSale:parseFloat(document.getElementById('ed-sales').value)||0,orders:parseFloat(document.getElementById('ed-orders').value)||0,comments:document.getElementById('ed-comments').value};
+  await withSpinner('ed-spinner',async()=>{await apiPost({action:'updateDeliverable',data});showToast('✓ Deliverable updated in sheet');closeModal('edit-deliverable');await syncData(false);});
+}
+async function withSpinner(id,fn){const sp=document.getElementById(id);if(sp)sp.style.display='inline-block';try{await fn();}catch(e){showToast('✗ '+e.message,true);}finally{if(sp)sp.style.display='none';}}
+function showToast(msg,isErr){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(isErr?' error':'')+' show';clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),3200);}
+// ================================================================
+// BOOT — Auth handled by Vercel Edge Middleware + Google OAuth.
+// ================================================================
+function doLogout() {
+  window.location.href = '/api/logout';
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.addEventListener('click', () => showView(el.dataset.view, el));
+  });
+  syncData(false);
+});
+</script>
+</body>
+</html>
