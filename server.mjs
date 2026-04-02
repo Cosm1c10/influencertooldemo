@@ -26,7 +26,8 @@ let ytCache = { ts: 0, metrics: {} };
 function extractYouTubeId(url) {
   if (!url) return null;
   try {
-    const u = new URL(url);
+    const u = new URL(url.trim());
+    if (!u.hostname.includes('youtu')) return null;
     if (u.hostname === 'youtu.be') return u.pathname.slice(1).split('?')[0];
     if (u.pathname.startsWith('/shorts/')) return u.pathname.split('/shorts/')[1].split('?')[0];
     if (u.pathname.startsWith('/embed/')) return u.pathname.split('/embed/')[1].split('?')[0];
@@ -64,18 +65,28 @@ async function enrichWithYouTube(deliverables) {
   if (now - ytCache.ts < YT_CACHE_TTL) {
     console.log(`YT metrics: serving ${Object.keys(ytCache.metrics).length} from cache`);
     const metrics = ytCache.metrics;
+    const seenIds = new Set();
     return deliverables.map(d => {
       const id = extractYouTubeId(d.ytLink);
-      return id && metrics[id] ? { ...d, ...metrics[id] } : d;
+      if (!id || !metrics[id]) return d;
+      const enriched = { ...d, ...metrics[id] };
+      if (seenIds.has(id)) enriched.ytDupe = true;
+      else seenIds.add(id);
+      return enriched;
     });
   }
 
   console.log(`Fetching YouTube metrics for ${ids.length} posted videos...`);
   const metrics = await fetchYouTubeMetrics(ids);
   ytCache = { ts: now, metrics };
+  const seenIds = new Set();
   return deliverables.map(d => {
     const id = extractYouTubeId(d.ytLink);
-    return id && metrics[id] ? { ...d, ...metrics[id] } : d;
+    if (!id || !metrics[id]) return d;
+    const enriched = { ...d, ...metrics[id] };
+    if (seenIds.has(id)) enriched.ytDupe = true;
+    else seenIds.add(id);
+    return enriched;
   });
 }
 

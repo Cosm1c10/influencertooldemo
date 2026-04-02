@@ -750,10 +750,11 @@ let infPage = 0, delPage = 0;
 const PG = 25;
 let charts = {};
 
-// Returns best available view count for a deliverable
-// Priority: live YouTube API views > manual YT views > IG views
+// Returns best available view count for a deliverable.
+// ytDupe=true means this video ID was already counted in another row — exclude from totals.
 function getViews(d) {
-  return (d.ytViews || d.manualViews || 0) + (d.igViews || 0);
+  const yt = d.ytDupe ? 0 : (d.ytViews || d.manualViews || 0);
+  return yt + (d.igViews || 0);
 }
 // ================================================================
 // NAV

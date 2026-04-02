@@ -14,7 +14,8 @@ let ytCache = { ts: 0, metrics: {} };
 function extractYouTubeId(url) {
   if (!url) return null;
   try {
-    const u = new URL(url);
+    const u = new URL(url.trim());
+    if (!u.hostname.includes('youtu')) return null; // reject non-YT URLs (e.g. instagram links in YT column)
     if (u.hostname === 'youtu.be') return u.pathname.slice(1).split('?')[0];
     if (u.pathname.startsWith('/shorts/')) return u.pathname.split('/shorts/')[1].split('?')[0];
     if (u.pathname.startsWith('/embed/')) return u.pathname.split('/embed/')[1].split('?')[0];
@@ -42,26 +43,25 @@ async function fetchYouTubeMetrics(videoIds) {
 }
 
 async function enrichWithYouTube(deliverables) {
-  // Only fetch metrics for posted deliverables that have a YT link
   const posted = deliverables.filter(d => d.status === 'Posted' && d.ytLink);
   const ids = [...new Set(posted.map(d => extractYouTubeId(d.ytLink)).filter(Boolean))];
   if (!ids.length) return deliverables;
 
-  // Return cached metrics if still fresh
   const now = Date.now();
-  if (now - ytCache.ts < YT_CACHE_TTL) {
-    const metrics = ytCache.metrics;
-    return deliverables.map(d => {
-      const id = extractYouTubeId(d.ytLink);
-      return id && metrics[id] ? { ...d, ...metrics[id] } : d;
-    });
+  if (now - ytCache.ts >= YT_CACHE_TTL) {
+    const metrics = await fetchYouTubeMetrics(ids);
+    ytCache = { ts: now, metrics };
   }
 
-  const metrics = await fetchYouTubeMetrics(ids);
-  ytCache = { ts: now, metrics };
+  // Enrich rows and flag duplicate video IDs so totals aren't double-counted
+  const seenIds = new Set();
   return deliverables.map(d => {
     const id = extractYouTubeId(d.ytLink);
-    return id && metrics[id] ? { ...d, ...metrics[id] } : d;
+    if (!id || !ytCache.metrics[id]) return d;
+    const enriched = { ...d, ...ytCache.metrics[id] };
+    if (seenIds.has(id)) enriched.ytDupe = true;
+    else seenIds.add(id);
+    return enriched;
   });
 }
 
