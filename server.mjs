@@ -4,6 +4,16 @@ import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
+// Load .env
+try {
+  const env = fs.readFileSync(new URL('.env', import.meta.url), 'utf8');
+  env.split('\n').forEach(line => {
+    const [k, ...v] = line.split('=');
+    if (k && !k.startsWith('#')) process.env[k.trim()] = v.join('=').trim().replace(/^"|"$/g, '').replace(/\\n/g, '\n');
+  });
+} catch {}
+
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const STATIC_DIR = path.join(__dirname, 'influenza-main');
 const PORT = 5050;
