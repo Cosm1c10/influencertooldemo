@@ -894,19 +894,28 @@ function reqStatusBadge(s) {
   if(s==='Rejected') return `<span class="badge badge-rejected">✕ Rejected</span>`;
   return `<span class="badge badge-pending">◌ Pending</span>`;
 }
-function getDelMonth(d) { return d.scheduledMonth || d.monthOfPosting || ''; }
+const VALID_MONTH = /^\d{4}-\d{2}$/;
+function getDelMonth(d) {
+  const m = d.scheduledMonth || d.monthOfPosting || '';
+  return VALID_MONTH.test(m) ? m : '';
+}
+function fmtMonth(m) {
+  // "2024-03" → "Mar 2024"
+  try { return new Date(m + '-01').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }); }
+  catch { return m; }
+}
 function populateFilters() {
   const cats = [...new Set(influencers.map(i=>i.category).filter(Boolean))].sort();
   document.getElementById('f-inf-cat').innerHTML = '<option value="">All Categories</option>' + cats.map(c=>`<option>${c}</option>`).join('');
   document.getElementById('dash-cat').innerHTML  = '<option value="">All Categories</option>' + cats.map(c=>`<option>${c}</option>`).join('');
-  const months = [...new Set(deliverables.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>m.length>4))].sort();
+  const months = [...new Set(deliverables.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>VALID_MONTH.test(m)))].sort();
   ['dash-a-from','dash-b-from','an-a-from','an-b-from'].forEach(id => {
-    const el=document.getElementById(id); if(el) el.innerHTML='<option value="">All Time</option>'+months.map(m=>`<option>${m}</option>`).join('');
+    const el=document.getElementById(id); if(el) el.innerHTML='<option value="">All Time</option>'+months.map(m=>`<option value="${m}">${fmtMonth(m)}</option>`).join('');
   });
   ['dash-a-to','dash-b-to','an-a-to','an-b-to'].forEach(id => {
-    const el=document.getElementById(id); if(el) el.innerHTML='<option value="">Latest</option>'+[...months].reverse().map(m=>`<option>${m}</option>`).join('');
+    const el=document.getElementById(id); if(el) el.innerHTML='<option value="">Latest</option>'+[...months].reverse().map(m=>`<option value="${m}">${fmtMonth(m)}</option>`).join('');
   });
-  document.getElementById('f-del-month').innerHTML = '<option value="">All Months</option>'+[...months].reverse().map(m=>`<option>${m}</option>`).join('');
+  document.getElementById('f-del-month').innerHTML = '<option value="">All Months</option>'+[...months].reverse().map(m=>`<option value="${m}">${fmtMonth(m)}</option>`).join('');
   const prods = [...new Set(deliverables.map(d=>d.product).filter(Boolean))].sort();
   document.getElementById('f-del-product').innerHTML = '<option value="">All Products</option>'+prods.map(p=>`<option>${p}</option>`).join('');
   const anProd=document.getElementById('an-product'); if(anProd) anProd.innerHTML='<option value="">All Products</option>'+prods.map(p=>`<option>${p}</option>`).join('');
@@ -916,7 +925,7 @@ function populateFilters() {
   document.getElementById('nd-datalist').innerHTML=influencers.map(i=>`<option value="${i.name}">`).join('');
   // Dashboard IG sync dropdowns
   const dashIGProd=document.getElementById('dash-ig-product'); if(dashIGProd) dashIGProd.innerHTML='<option value="">Select product…</option>'+prods.map(p=>`<option>${p}</option>`).join('');
-  const dashIGMon=document.getElementById('dash-ig-month'); if(dashIGMon) dashIGMon.innerHTML='<option value="">All months</option>'+[...months].reverse().map(m=>`<option>${m}</option>`).join('');
+  const dashIGMon=document.getElementById('dash-ig-month'); if(dashIGMon) dashIGMon.innerHTML='<option value="">All months</option>'+[...months].reverse().map(m=>`<option value="${m}">${fmtMonth(m)}</option>`).join('');
 }
 // ================================================================
 // PERIOD COMPARE TOGGLE — DASHBOARD
@@ -935,7 +944,7 @@ function getPeriodDels(fromId, toId) {
   const from=document.getElementById(fromId)?document.getElementById(fromId).value:'';
   const to=document.getElementById(toId)?document.getElementById(toId).value:'';
   if(!from&&!to) return deliverables;
-  const allMonths=[...new Set(deliverables.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>m.length>4))].sort();
+  const allMonths=[...new Set(deliverables.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>VALID_MONTH.test(m)))].sort();
   const start=from||allMonths[0]; const end=to||allMonths[allMonths.length-1];
   return deliverables.filter(d=>{ const m=getDelMonth(d); return m&&m>=start&&m<=end; });
 }
@@ -1353,7 +1362,7 @@ function getAnPeriodDels(fromId,toId) {
   const product=document.getElementById('an-product')?document.getElementById('an-product').value:'';
   let base=product?deliverables.filter(d=>d.product===product):deliverables;
   if(!from&&!to) return base;
-  const allMonths=[...new Set(base.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>m.length>4))].sort();
+  const allMonths=[...new Set(base.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>VALID_MONTH.test(m)))].sort();
   const start=from||allMonths[0]; const end=to||allMonths[allMonths.length-1];
   return base.filter(d=>{const m=getDelMonth(d);return m&&m>=start&&m<=end;});
 }
@@ -1367,7 +1376,7 @@ function anPeriodLabel(fromId,toId) {
 }
 function calcNewRepeat(periodDels,fromId,toId) {
   const from=document.getElementById(fromId)?document.getElementById(fromId).value:'';
-  const allMonths=[...new Set(deliverables.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>m.length>4))].sort();
+  const allMonths=[...new Set(deliverables.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>VALID_MONTH.test(m)))].sort();
   const periodStart=from||(allMonths[0]||'');
   function monthToDate(m){if(!m)return null;const d=new Date(m);return isNaN(d)?null:d;}
   const periodStartDate=monthToDate(periodStart);
