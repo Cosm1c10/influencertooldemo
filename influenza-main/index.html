@@ -51,7 +51,7 @@ body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--t
 .stat-card:hover{border-color:var(--accent-color,var(--accent))}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent-color,var(--accent))}
 .stat-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
-.stat-value{font-family:'Syne',sans-serif;font-size:26px;font-weight:700}
+.stat-value{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-sub{font-size:11px;color:var(--text2);margin-top:4px}
 /* FILTER BAR */
 .filter-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
@@ -869,7 +869,13 @@ function parseF(v) {
   return Math.round(n);
 }
 function fmtF(v) { const n=parseF(v); if(!n) return v||'—'; if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1000) return (n/1000).toFixed(1)+'K'; return n; }
-function fmtN(n) { if(!n) return '—'; if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1000) return (n/1000).toFixed(1)+'K'; return n; }
+function fmtN(n) {
+  if (!n) return '—';
+  if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n >= 10e6 ? Math.round(n/1e6) : (n/1e6).toFixed(1)) + 'M';
+  if (n >= 1e3) return (n >= 10e3 ? Math.round(n/1e3) : (n/1e3).toFixed(1)) + 'K';
+  return n;
+}
 function fmtC(n) { if(!n) return '—'; if(n>=1e5) return '₹'+(n/1e5).toFixed(1)+'L'; if(n>=1000) return '₹'+(n/1000).toFixed(1)+'K'; return '₹'+n; }
 function fmtD(d) { if(!d) return '—'; const dt=new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'}); }
 function platBadge(p) {
