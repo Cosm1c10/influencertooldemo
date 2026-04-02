@@ -260,7 +260,7 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify({ results: [], message: 'No Instagram reels found for this product' }));
       }
 
-      const reelUrls = candidates.map(d => d.igLink);
+      const reelUrls = [...new Set(candidates.map(d => d.igLink))];
       console.log(`Scraping ${reelUrls.length} reels for "${product}":`, reelUrls);
 
       // Call Apify instagram-reel-scraper
@@ -269,7 +269,7 @@ const server = http.createServer(async (req, res) => {
         {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ directUrls: reelUrls, resultsLimit: limit }),
+          body:    JSON.stringify({ username: reelUrls, resultsLimit: limit }),
         }
       );
       const results = await apifyRes.json();

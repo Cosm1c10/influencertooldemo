@@ -83,7 +83,7 @@ export default async function handler(req, res) {
       return res.json({ results: [], message: 'No Instagram reels found for this product' });
     }
 
-    const reelUrls = candidates.map(d => d.igLink);
+    const reelUrls = [...new Set(candidates.map(d => d.igLink))];
     console.log(`Scraping ${reelUrls.length} reels for "${product}":`, reelUrls);
 
     const apifyRes = await fetch(
@@ -91,7 +91,7 @@ export default async function handler(req, res) {
       {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ directUrls: reelUrls, resultsLimit: parseInt(limit) }),
+        body:    JSON.stringify({ username: reelUrls, resultsLimit: parseInt(limit) }),
       }
     );
 
