@@ -153,21 +153,21 @@ function parseInfluencers(rows) {
     _row: i + 2, name: r[1]||'', connectType: r[2]||'', platform: r[3]||'',
     category: r[4]||'', link: r[5]||'', followers: r[6]||0, state: r[7]||'',
     language: r[8]||'', email: r[9]||'', phone: r[10]||'',
-    affiliateId: r[11]||'', discountCode: r[12]||'', orderTotal: r[13]||0, orders: r[14]||0,
+    affiliateId: r[11]||'', discountCode: r[12]||'', orderTotal: parseFloat(r[13])||0, orders: parseFloat(r[14])||0,
   }));
 }
 function parseDeliverables(rows) {
   return rows.slice(1).filter(r => r[1]).map((r, i) => ({
     _row: i+2, slNo: r[0]||'', influencer: r[1]||'', accountLink: r[2]||'',
-    followers: r[3]||0, category: r[4]||'', language: r[5]||'', asset: r[6]||'',
+    followers: parseFloat(r[3])||0, category: r[4]||'', language: r[5]||'', asset: r[6]||'',
     status: r[7]||'', product: r[8]||'', skuIds: r[9]||'', productSent: r[10]||'',
     customOrderDate: r[11]||'', deliveryDate: r[12]||'', tat: r[13]||'',
     scheduledDate: r[14]||'', scheduledMonth: r[15]||'', dateOfPosting: r[16]||'',
-    monthOfPosting: r[17]||'', manualViews: r[18]||0, ytLink: r[19]||'',
-    colU: r[20]||'', colV: r[21]||'', igLink: r[22]||'', igViews: r[23]||0,
-    influencerCost: r[24]||0, cogs: r[25]||0, costToKreo: r[26]||0,
-    affiliateLink: r[27]||'', totalSale: r[28]||0, orders: r[29]||0,
-    conversionRate: r[30]||0, oldVsRepeat: r[31]||'',
+    monthOfPosting: r[17]||'', manualViews: parseFloat(r[18])||0, ytLink: r[19]||'',
+    colU: r[20]||'', colV: r[21]||'', igLink: r[22]||'', igViews: parseFloat(r[23])||0,
+    influencerCost: parseFloat(r[24])||0, cogs: parseFloat(r[25])||0, costToKreo: parseFloat(r[26])||0,
+    affiliateLink: r[27]||'', totalSale: parseFloat(r[28])||0, orders: parseFloat(r[29])||0,
+    conversionRate: parseFloat(r[30])||0, oldVsRepeat: r[31]||'',
   }));
 }
 function parseRequests(rows) {
