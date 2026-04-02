@@ -945,7 +945,9 @@ function getPeriodDels(fromId, toId) {
   const to=document.getElementById(toId)?document.getElementById(toId).value:'';
   if(!from&&!to) return deliverables;
   const allMonths=[...new Set(deliverables.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>VALID_MONTH.test(m)))].sort();
-  const start=from||allMonths[0]; const end=to||allMonths[allMonths.length-1];
+  // If only one end is set, use it as both start and end (single-month mode)
+  const start = from || to;
+  const end   = to   || from;
   return deliverables.filter(d=>{ const m=getDelMonth(d); return m&&m>=start&&m<=end; });
 }
 function periodLabel(fromId, toId) {
@@ -1362,8 +1364,8 @@ function getAnPeriodDels(fromId,toId) {
   const product=document.getElementById('an-product')?document.getElementById('an-product').value:'';
   let base=product?deliverables.filter(d=>d.product===product):deliverables;
   if(!from&&!to) return base;
-  const allMonths=[...new Set(base.map(d=>getDelMonth(d)).filter(Boolean).filter(m=>VALID_MONTH.test(m)))].sort();
-  const start=from||allMonths[0]; const end=to||allMonths[allMonths.length-1];
+  const start = from || to;
+  const end   = to   || from;
   return base.filter(d=>{const m=getDelMonth(d);return m&&m>=start&&m<=end;});
 }
 function anPeriodLabel(fromId,toId) {
